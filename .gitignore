@@ -1,0 +1,8 @@
+*.py[cod]
+*~
+*.egg
+*.egg-info/
+wsgi_eggs/
+/.idea
+/docs/_build
+/.coverage
