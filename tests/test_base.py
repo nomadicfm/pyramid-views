@@ -13,7 +13,8 @@ from pyramid_views.views.base import View, TemplateView, RedirectView
 
 from . import views
 from pyramid.response import Response
-from tests.app import main
+from tests.base import BaseTest
+from pyramid_views.utils import ImproperlyConfigured
 
 
 class SimpleView(View):
@@ -54,11 +55,11 @@ class AboutTemplateView(TemplateView):
         return self.render_to_response({})
 
     def get_template_names(self):
-        return ['generic_views/about.html']
+        return ['tests.templates:generic_views/about.html']
 
 
 class AboutTemplateAttributeView(TemplateView):
-    template_name = 'generic_views/about.html'
+    template_name = 'tests.templates:generic_views/about.html'
 
     def get(self, request):
         return self.render_to_response(context={})
@@ -70,7 +71,7 @@ class InstanceView(View):
         return self
 
 
-class ViewTest(unittest.TestCase):
+class ViewTest(BaseTest):
     def _assert_simple(self, response):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.body, b'This is a simple view')
@@ -259,13 +260,12 @@ class ViewTest(unittest.TestCase):
         self.assertEqual(response.status_code, 405)
 
 
-class TemplateViewTest(unittest.TestCase):
+class TemplateViewTest(BaseTest):
     urls = 'generic_views.urls'
 
     def _assert_about(self, response):
-        response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<h1>About</h1>')
+        self.assertIn('<h1>About</h1>', response.body)
 
     def test_get(self):
         """
@@ -298,7 +298,7 @@ class TemplateViewTest(unittest.TestCase):
         Test a completely generic view that renders a template on GET
         with the template name as an argument at instantiation.
         """
-        self._assert_about(TemplateView.as_view(template_name='generic_views/about.html')(
+        self._assert_about(TemplateView.as_view(template_name='tests.templates:generic_views/about.html')(
             DummyRequest(path='/about/', method='GET')
         ))
 
@@ -306,64 +306,17 @@ class TemplateViewTest(unittest.TestCase):
         """
         A template view must provide a template name
         """
-        self.assertRaises(KeyError, self.client.get, '/template/no_template/')
-
-    def test_template_params(self):
-        """
-        A generic template view passes kwargs as context.
-        """
-        response = self.client.get('/template/simple/bar/')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['foo'], 'bar')
-        self.assertIsInstance(response.context['view'], View)
-
-    def test_extra_template_params(self):
-        """
-        A template view can be customized to return extra context.
-        """
-        response = self.client.get('/template/custom/bar/')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['foo'], 'bar')
-        self.assertEqual(response.context['key'], 'value')
-        self.assertIsInstance(response.context['view'], View)
-
-    def test_cached_views(self):
-        """
-        A template view can be cached
-        """
-        response = self.client.get('/template/cached/bar/')
-        self.assertEqual(response.status_code, 200)
-
-        time.sleep(1.0)
-
-        response2 = self.client.get('/template/cached/bar/')
-        self.assertEqual(response2.status_code, 200)
-
-        self.assertEqual(response.body, response2.content)
-
-        time.sleep(2.0)
-
-        # Let the cache expire and test again
-        response2 = self.client.get('/template/cached/bar/')
-        self.assertEqual(response2.status_code, 200)
-
-        self.assertNotEqual(response.body, response2.content)
+        view = TemplateView.as_view()
+        self.assertRaises(ImproperlyConfigured, view, DummyRequest(path='/', method='GET'))
 
     def test_content_type(self):
-        response = self.client.get('/template/content_type/')
-        self.assertEqual(response.headers['Content-Type'], 'text/plain')
+        view = TemplateView.as_view(template_name='tests.templates:generic_views/robots.txt', content_type='text/plain')
+        response = view(DummyRequest(path='/', method='GET'))
+        self.assertEqual(response.headers['Content-Type'], 'text/plain; charset=UTF-8')
 
 
-class RedirectViewTest(unittest.TestCase):
+class RedirectViewTest(BaseTest):
     urls = 'generic_views.urls'
-
-    def setUp(self):
-        super(RedirectViewTest, self).setUp()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        super(RedirectViewTest, self).tearDown()
-        testing.tearDown()
 
     def test_no_url(self):
         "Without any configuration, returns HTTP 410 GONE"

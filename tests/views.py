@@ -8,17 +8,18 @@ from __future__ import unicode_literals
 
 # from .test_forms import AuthorForm, ContactForm
 # from .models import Artist, Author, Book, Page, BookSigning
+from pyramid_views.views.base import TemplateView
 
-#
-# class CustomTemplateView(generic.TemplateView):
-#     template_name = 'generic_views/about.html'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(CustomTemplateView, self).get_context_data(**kwargs)
-#         context.update({'key': 'value'})
-#         return context
-#
-#
+
+class CustomTemplateView(TemplateView):
+    template_name = 'generic_views/about.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CustomTemplateView, self).get_context_data(**kwargs)
+        context.update({'key': 'value'})
+        return context
+
+
 # class ObjectDetail(generic.DetailView):
 #     template_name = 'generic_views/detail.html'
 #
