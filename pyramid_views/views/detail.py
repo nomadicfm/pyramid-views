@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
-from django.core.exceptions import ImproperlyConfigured
-from django.db import models
-from django.http import Http404
-from django.utils.translation import ugettext as _
-from django.views.generic.base import TemplateResponseMixin, ContextMixin, View
+# from django.core.exceptions import ImproperlyConfigured
+# from django.db import models
+# from django.http import Http404
+# from django.utils.translation import ugettext as _
+from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
 
 
 class SingleObjectMixin(ContextMixin):
