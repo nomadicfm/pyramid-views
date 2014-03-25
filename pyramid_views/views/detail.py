@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 # from django.db import models
 # from django.http import Http404
 # from django.utils.translation import ugettext as _
+from pyramid_views.utils import ImproperlyConfigured
 from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
 
 
@@ -87,8 +88,9 @@ class SingleObjectMixin(ContextMixin):
         """
         if self.context_object_name:
             return self.context_object_name
-        elif isinstance(obj, models.Model):
-            return obj._meta.model_name
+        # Is this a model
+        elif hasattr(obj, '__table__'):
+            return obj.__table__.name
         else:
             return None
 
@@ -147,7 +149,8 @@ class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
 
             # The least-specific option is the default <app>/<model>_detail.html;
             # only use this if the object in question is a model.
-            if isinstance(self.object, models.Model):
+            if hasattr(self.object, '__table__'):
+                raise NotImplemented()
                 names.append("%s/%s%s.html" % (
                     self.object._meta.app_label,
                     self.object._meta.model_name,

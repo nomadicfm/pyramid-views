@@ -1,11 +1,15 @@
 from __future__ import unicode_literals
+from pyramid import httpexceptions
+from sqlalchemy.orm import Query
 
-from django.core.paginator import Paginator, InvalidPage
-from django.core.exceptions import ImproperlyConfigured
-from django.db.models.query import QuerySet
-from django.http import Http404
-from django.utils.translation import ugettext as _
-from django.views.generic.base import TemplateResponseMixin, ContextMixin, View
+from pyramid_views.paginator import Paginator, InvalidPage
+# from django.core.exceptions import ImproperlyConfigured
+# from django.db.models.query import QuerySet
+# from django.http import Http404
+# from django.utils.translation import ugettext as _
+# from django.views.generic.base import TemplateResponseMixin, ContextMixin, View
+from pyramid_views.utils import ImproperlyConfigured, _
+from pyramid_views.views.base import ContextMixin, View, TemplateResponseMixin
 
 
 class MultipleObjectMixin(ContextMixin):
@@ -30,10 +34,10 @@ class MultipleObjectMixin(ContextMixin):
         """
         if self.queryset is not None:
             queryset = self.queryset
-            if isinstance(queryset, QuerySet):
+            if isinstance(queryset, Query):
                 queryset = queryset.all()
         elif self.model is not None:
-            queryset = self.model._default_manager.all()
+            queryset = self.session.query(self.model).all()
         else:
             raise ImproperlyConfigured(
                 "%(cls)s is missing a QuerySet. Define "
@@ -59,12 +63,12 @@ class MultipleObjectMixin(ContextMixin):
             if page == 'last':
                 page_number = paginator.num_pages
             else:
-                raise Http404(_("Page is not 'last', nor can it be converted to an int."))
+                raise httpexceptions.HTTPNotFound(_("Page is not 'last', nor can it be converted to an int."))
         try:
             page = paginator.page(page_number)
             return (paginator, page, page.object_list, page.has_other_pages())
         except InvalidPage as e:
-            raise Http404(_('Invalid page (%(page_number)s): %(message)s') % {
+            raise httpexceptions.HTTPNotFound(_('Invalid page (%(page_number)s): %(message)s') % {
                 'page_number': page_number,
                 'message': str(e)
             })
@@ -155,7 +159,7 @@ class BaseListView(MultipleObjectMixin, View):
             else:
                 is_empty = len(self.object_list) == 0
             if is_empty:
-                raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+                raise httpexceptions.HTTPNotFound(_("Empty list and '%(class_name)s.allow_empty' is False.")
                         % {'class_name': self.__class__.__name__})
         context = self.get_context_data()
         return self.render_to_response(context)

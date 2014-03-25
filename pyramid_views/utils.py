@@ -9,3 +9,10 @@ class classonlymethod(classmethod):
         if instance is not None:
             raise AttributeError("This method is available only on the view class.")
         return super(classonlymethod, self).__get__(instance, owner)
+
+def _(val):
+    """Dummy placeholder for translation function used in Django code
+
+    May implement late
+    """
+    return val

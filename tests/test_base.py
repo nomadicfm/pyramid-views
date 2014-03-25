@@ -478,14 +478,14 @@ class UseMultipleObjectMixinTest(unittest.TestCase):
 
     def test_use_queryset_from_view(self):
         test_view = views.CustomMultipleObjectMixinView()
-        test_view.get(self.rf.get('/'))
+        test_view.get(DummyRequest(path='/', method='POST'))
         # Don't pass queryset as argument
         context = test_view.get_context_data()
         self.assertEqual(context['object_list'], test_view.queryset)
 
     def test_overwrite_queryset(self):
         test_view = views.CustomMultipleObjectMixinView()
-        test_view.get(self.rf.get('/'))
+        test_view.get(DummyRequest(path='/', method='POST'))
         queryset = [{'name': 'Lennon'}, {'name': 'Ono'}]
         self.assertNotEqual(test_view.queryset, queryset)
         # Overwrite the view's queryset with queryset from kwarg

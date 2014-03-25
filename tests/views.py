@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 from .models import Author, Book
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
+from pyramid_views.views.list import MultipleObjectMixin
 
 
 class CustomTemplateView(TemplateView):
@@ -95,12 +96,12 @@ class CustomTemplateView(TemplateView):
 #     fields = '__all__'
 #
 #
-# class TemplateResponseWithoutTemplate(generic.detail.SingleObjectTemplateResponseMixin, generic.View):
-#     # we don't define the usual template_name here
-#
-#     def __init__(self):
-#         # Dummy object, but attr is required by get_template_name()
-#         self.object = None
+class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, View):
+    # we don't define the usual template_name here
+
+    def __init__(self):
+        # Dummy object, but attr is required by get_template_name()
+        self.object = None
 #
 #
 # class AuthorCreate(generic.CreateView):
@@ -221,16 +222,16 @@ class CustomTemplateView(TemplateView):
 #             queryset=Book.objects.filter(pk=2))
 #
 #
-# class CustomMultipleObjectMixinView(generic.list.MultipleObjectMixin, generic.View):
-#     queryset = [
-#         {'name': 'John'},
-#         {'name': 'Yoko'},
-#     ]
-#
-#     def get(self, request):
-#         self.object_list = self.get_queryset()
-#
-#
+class CustomMultipleObjectMixinView(MultipleObjectMixin, View):
+    queryset = [
+        {'name': 'John'},
+        {'name': 'Yoko'},
+    ]
+
+    def get(self, request):
+        self.object_list = self.get_queryset()
+
+
 class CustomContextView(detail.SingleObjectMixin, View):
     model = Book
     object = Book(name='dummy')
@@ -245,12 +246,12 @@ class CustomContextView(detail.SingleObjectMixin, View):
 
     def get_context_object_name(self, obj):
         return "test_name"
-#
-#
-# class CustomSingleObjectView(generic.detail.SingleObjectMixin, generic.View):
-#     model = Book
-#     object = Book(name="dummy")
-#
+
+
+class CustomSingleObjectView(detail.SingleObjectMixin, View):
+    model = Book
+    object = Book(name="dummy")
+
 #
 # class BookSigningConfig(object):
 #     model = BookSigning
