@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 # from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 # from django.test import TestCase
 # from django.views.generic.base import View
+from pyramid import httpexceptions
 from pyramid.testing import DummyRequest
 
 from .models import Artist, Author, Page
@@ -35,31 +36,42 @@ class DetailViewTest(BaseTest):
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_detail_missing_object(self):
-        res = self.client.get('/detail/author/500/')
-        self.assertEqual(res.status_code, 404)
+        view = views.AuthorDetail.as_view()
+        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET'), pk=500)
 
     def test_detail_object_does_not_exist(self):
-        self.assertRaises(ObjectDoesNotExist, self.client.get, '/detail/doesnotexist/1/')
+        self.author()
+        # ObjectDoesNotExistDetail uses get_query() to return an empty queryset
+        view = views.ObjectDoesNotExistDetail.as_view()
+        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET'), pk=1)
 
     def test_detail_by_custom_pk(self):
-        res = self.client.get('/detail/author/bycustompk/1/')
+        self.author()
+        view = views.AuthorDetail.as_view(pk_url_kwarg='foo')
+        res = view(DummyRequest(path='/foo', method='GET'), foo=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=1))
-        self.assertEqual(res.context['author'], Author.objects.get(pk=1))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_detail_by_slug(self):
-        res = self.client.get('/detail/author/byslug/scott-rosenberg/')
+        self.author()
+        self.author(name='Scott Rosenberg', slug='scott-rosenberg')
+        view = views.AuthorDetail.as_view()
+        res = view(DummyRequest(path='/foo', method='GET'), slug='scott-rosenberg')
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(slug='scott-rosenberg'))
-        self.assertEqual(res.context['author'], Author.objects.get(slug='scott-rosenberg'))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_detail_by_custom_slug(self):
-        res = self.client.get('/detail/author/bycustomslug/scott-rosenberg/')
+        self.author()
+        self.author(name='Scott Rosenberg', slug='scott-rosenberg')
+        view = views.AuthorDetail.as_view(slug_url_kwarg='foo')
+        res = view(DummyRequest(path='/foo', method='GET'), foo='scott-rosenberg')
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(slug='scott-rosenberg'))
-        self.assertEqual(res.context['author'], Author.objects.get(slug='scott-rosenberg'))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_verbose_name(self):

@@ -286,7 +286,7 @@ class DateMixin(object):
         Return `True` if the date field is a `DateTimeField` and `False`
         if it's a `DateField`.
         """
-        model = self.get_queryset().model if self.model is None else self.model
+        model = self.get_query().model if self.model is None else self.model
         field = model._meta.get_field(self.get_date_field())
         return isinstance(field, models.DateTimeField)
 
@@ -348,7 +348,7 @@ class BaseDateListView(MultipleObjectMixin, DateMixin, View):
         Get a queryset properly filtered according to `allow_future` and any
         extra lookup kwargs.
         """
-        qs = self.get_queryset().filter(**lookup)
+        qs = self.get_query().filter(**lookup)
         date_field = self.get_date_field()
         allow_future = self.get_allow_future()
         allow_empty = self.get_allow_empty()
@@ -644,7 +644,7 @@ class BaseDateDetailView(YearMixin, MonthMixin, DayMixin, DateMixin, BaseDetailV
                                  day, self.get_day_format())
 
         # Use a custom queryset if provided
-        qs = queryset or self.get_queryset()
+        qs = queryset or self.get_query()
 
         if not self.get_allow_future() and date > datetime.date.today():
             raise Http404(_("Future %(verbose_name_plural)s not available because %(class_name)s.allow_future is False.") % {
@@ -757,7 +757,7 @@ def _get_next_prev(generic_view, date, is_previous, period):
                 now = timezone_today()
             lookup['%s__lte' % date_field] = now
 
-        qs = generic_view.get_queryset().filter(**lookup).order_by(ordering)
+        qs = generic_view.get_query().filter(**lookup).order_by(ordering)
 
         # Snag the first object from the queryset; if it doesn't exist that
         # means there's no next/previous link available.

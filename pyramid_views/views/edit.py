@@ -106,7 +106,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             else:
                 # Try to get a queryset and extract the model class
                 # from that
-                model = self.get_queryset().model
+                model = self.get_query().model
 
             if self.fields is None:
                 raise ImproperlyConfigured(

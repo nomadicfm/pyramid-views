@@ -44,6 +44,6 @@ class BaseTest(unittest.TestCase):
         from .models import Artist
         session.add(Artist(name=name))
 
-    def author(self, name='Rene Magritte'):
+    def author(self, name=u'Roberto Bolaño', slug='roberto-bolano'):
         from .models import Author
-        session.add(Author(name=u'Roberto Bolaño', slug='roberto-bolano'))
+        session.add(Author(name=name, slug=slug))

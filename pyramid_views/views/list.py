@@ -25,7 +25,7 @@ class MultipleObjectMixin(ContextMixin):
     paginator_class = Paginator
     page_kwarg = 'page'
 
-    def get_queryset(self):
+    def get_query(self):
         """
         Return the list of items for this view.
 
@@ -42,7 +42,7 @@ class MultipleObjectMixin(ContextMixin):
             raise ImproperlyConfigured(
                 "%(cls)s is missing a QuerySet. Define "
                 "%(cls)s.model, %(cls)s.queryset, or override "
-                "%(cls)s.get_queryset()." % {
+                "%(cls)s.get_query()." % {
                     'cls': self.__class__.__name__
                 }
             )
@@ -146,7 +146,7 @@ class BaseListView(MultipleObjectMixin, View):
     A base view for displaying a list of objects.
     """
     def get(self, request, *args, **kwargs):
-        self.object_list = self.get_queryset()
+        self.object_list = self.get_query()
         allow_empty = self.get_allow_empty()
 
         if not allow_empty:

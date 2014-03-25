@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 # from django.utils.translation import ugettext as _
 from pyramid import httpexceptions
 from sqlalchemy.orm import Query
+from sqlalchemy.orm.exc import NoResultFound
 from pyramid_views.utils import ImproperlyConfigured, _
 from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
 from pyramid_views import utils
@@ -31,7 +32,7 @@ class SingleObjectMixin(ContextMixin):
         # Use a custom query if provided; this is required for subclasses
         # like DateDetailView
         if query is None:
-            query = self.get_queryset()
+            query = self.get_query()
 
         # Set the session on the query (there may be a better way of handling this which
         # doesn't involve using a private API)
@@ -46,8 +47,8 @@ class SingleObjectMixin(ContextMixin):
 
         # Next, try looking up by slug.
         elif slug is not None:
-            slug_field = self.get_slug_field()
-            query = query.filter(**{slug_field: slug})
+            slug_field = utils.get_field(query, self.get_slug_field())
+            query = query.filter(slug_field==slug)
 
         # If none of those are defined, it's an error.
         else:
@@ -58,12 +59,12 @@ class SingleObjectMixin(ContextMixin):
         try:
             # Get the single item from the filtered query
             obj = query.one()
-        except IndexError:
+        except NoResultFound:
             raise httpexceptions.HTTPNotFound(_("No %(verbose_name)s found matching the query") %
-                                            {'verbose_name': query.model._meta.verbose_name})
+                                            {'verbose_name': utils.model_from_query(query).__name__})
         return obj
 
-    def get_queryset(self):
+    def get_query(self):
         """
         Return the `Query` that will be used to look up the object.
 
@@ -77,7 +78,7 @@ class SingleObjectMixin(ContextMixin):
                 raise ImproperlyConfigured(
                     "%(cls)s is missing a Query. Define "
                     "%(cls)s.model, %(cls)s.query, or override "
-                    "%(cls)s.get_queryset()." % {
+                    "%(cls)s.get_query()." % {
                         'cls': self.__class__.__name__
                     }
                 )

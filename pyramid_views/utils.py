@@ -35,7 +35,7 @@ def model_from_query(query):
     return query._primary_entity.entities[0]
 
 
-def get_pk_field(obj):
+def get_model_from_obj(obj):
     if isinstance(obj, Query):
         model = model_from_query(obj)
     elif hasattr(obj, '__table__'):
@@ -43,10 +43,19 @@ def get_pk_field(obj):
     else:
         raise ValueError('Expected model or Query object, but got %s' % obj)
 
+    return model
+
+def get_pk_field(obj):
+    model = get_model_from_obj(obj)
     primary_keys = [key.name for key in class_mapper(model).primary_key]
     if len(primary_keys) != 1:
         raise MultiplePrimaryKeysFound('Only models with a single primary key are supported by pyramid_views')
     return getattr(model, primary_keys[0])
+
+
+def get_field(obj, field_name):
+    model = get_model_from_obj(obj)
+    return getattr(model, field_name)
 
 
 def get_template_package_name(model):

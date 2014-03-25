@@ -214,7 +214,7 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 # class AuthorGetQuerySetFormView(generic.edit.ModelFormMixin):
 #     fields = '__all__'
 #
-#     def get_queryset(self):
+#     def get_query(self):
 #         return Author.objects.all()
 #
 #
@@ -231,7 +231,7 @@ class CustomMultipleObjectMixinView(MultipleObjectMixin, View):
     ]
 
     def get(self, request):
-        self.object_list = self.get_queryset()
+        self.object_list = self.get_query()
 
 
 class CustomContextView(detail.SingleObjectMixin, View):
@@ -306,7 +306,7 @@ class CustomSingleObjectView(detail.SingleObjectMixin, View):
 #     def get_object(self, queryset=None):
 #         return NonModel()
 #
-#
-# class ObjectDoesNotExistDetail(generic.DetailView):
-#     def get_queryset(self):
-#         return Book.does_not_exist.all()
+
+class ObjectDoesNotExistDetail(DetailView):
+    def get_query(self):
+        return Query(Book).filter(Book.id==123)
