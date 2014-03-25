@@ -4,43 +4,50 @@ from __future__ import unicode_literals
 # from django.db import models
 # from django.http import Http404
 # from django.utils.translation import ugettext as _
-from pyramid_views.utils import ImproperlyConfigured
+from pyramid import httpexceptions
+from sqlalchemy.orm import Query
+from pyramid_views.utils import ImproperlyConfigured, _
 from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
-
+from pyramid_views import utils
 
 class SingleObjectMixin(ContextMixin):
     """
     Provides the ability to retrieve a single object for further manipulation.
     """
     model = None
-    queryset = None
+    query = None
     slug_field = 'slug'
     context_object_name = None
     slug_url_kwarg = 'slug'
     pk_url_kwarg = 'pk'
 
-    def get_object(self, queryset=None):
+    def get_object(self, query=None):
         """
         Returns the object the view is displaying.
 
-        By default this requires `self.queryset` and a `pk` or `slug` argument
+        By default this requires `self.query` and a `pk` or `slug` argument
         in the URLconf, but subclasses can override this to return any object.
         """
-        # Use a custom queryset if provided; this is required for subclasses
+        # Use a custom query if provided; this is required for subclasses
         # like DateDetailView
-        if queryset is None:
-            queryset = self.get_queryset()
+        if query is None:
+            query = self.get_queryset()
+
+        # Set the session on the query (there may be a better way of handling this which
+        # doesn't involve using a private API)
+        query.session = utils.model_from_query(query).session
 
         # Next, try looking up by primary key.
         pk = self.kwargs.get(self.pk_url_kwarg, None)
         slug = self.kwargs.get(self.slug_url_kwarg, None)
         if pk is not None:
-            queryset = queryset.filter(pk=pk)
+            pk_field = utils.get_pk_field(query)
+            query = query.filter(pk_field==pk)
 
         # Next, try looking up by slug.
         elif slug is not None:
             slug_field = self.get_slug_field()
-            queryset = queryset.filter(**{slug_field: slug})
+            query = query.filter(**{slug_field: slug})
 
         # If none of those are defined, it's an error.
         else:
@@ -49,32 +56,32 @@ class SingleObjectMixin(ContextMixin):
                                  % self.__class__.__name__)
 
         try:
-            # Get the single item from the filtered queryset
-            obj = queryset.get()
-        except queryset.model.DoesNotExist:
-            raise Http404(_("No %(verbose_name)s found matching the query") %
-                          {'verbose_name': queryset.model._meta.verbose_name})
+            # Get the single item from the filtered query
+            obj = query.one()
+        except IndexError:
+            raise httpexceptions.HTTPNotFound(_("No %(verbose_name)s found matching the query") %
+                                            {'verbose_name': query.model._meta.verbose_name})
         return obj
 
     def get_queryset(self):
         """
-        Return the `QuerySet` that will be used to look up the object.
+        Return the `Query` that will be used to look up the object.
 
         Note that this method is called by the default implementation of
         `get_object` and may not be called if `get_object` is overriden.
         """
-        if self.queryset is None:
+        if self.query is None:
             if self.model:
-                return self.model._default_manager.all()
+                return Query(self.model)
             else:
                 raise ImproperlyConfigured(
-                    "%(cls)s is missing a QuerySet. Define "
-                    "%(cls)s.model, %(cls)s.queryset, or override "
+                    "%(cls)s is missing a Query. Define "
+                    "%(cls)s.model, %(cls)s.query, or override "
                     "%(cls)s.get_queryset()." % {
                         'cls': self.__class__.__name__
                     }
                 )
-        return self.queryset.all()
+        return self.query
 
     def get_slug_field(self):
         """
@@ -150,16 +157,17 @@ class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
             # The least-specific option is the default <app>/<model>_detail.html;
             # only use this if the object in question is a model.
             if hasattr(self.object, '__table__'):
-                raise NotImplemented()
-                names.append("%s/%s%s.html" % (
-                    self.object._meta.app_label,
-                    self.object._meta.model_name,
+                template_package = utils.get_template_package_name(self.object)
+                names.append("%s:templates/%s%s.html" % (
+                    template_package,
+                    self.object.__tablename__,
                     self.template_name_suffix
                 ))
-            elif hasattr(self, 'model') and self.model is not None and issubclass(self.model, models.Model):
-                names.append("%s/%s%s.html" % (
-                    self.model._meta.app_label,
-                    self.model._meta.model_name,
+            elif hasattr(self, 'model') and self.model is not None and hasattr(self.model, '__tablename__'):
+                template_package = utils.get_template_package_name(self.model)
+                names.append("%s:templates/%s%s.html" % (
+                    template_package,
+                    self.model.__tablename__,
                     self.template_name_suffix
                 ))
 
@@ -168,6 +176,9 @@ class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
             if not names:
                 raise
 
+            # For benefit of tests
+            self._template_names = names
+
         return names
 
 
@@ -175,6 +186,6 @@ class DetailView(SingleObjectTemplateResponseMixin, BaseDetailView):
     """
     Render a "detail" view of an object.
 
-    By default this is a model instance looked up from `self.queryset`, but the
+    By default this is a model instance looked up from `self.query`, but the
     view will support display of *any* object by overriding `self.get_object()`.
     """

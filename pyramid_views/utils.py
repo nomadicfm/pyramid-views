@@ -1,8 +1,21 @@
+import re
+from sqlalchemy.orm import class_mapper
+from sqlalchemy.orm.query import Query
+
 
 class ImproperlyConfigured(Exception):
-    """Django is somehow improperly configured"""
+    """Views are somehow improperly configured"""
     pass
 
+
+class MultiplePrimaryKeysFound(Exception):
+    """Multiple primary keys were found on a model, which is not supported"""
+    pass
+
+
+class TemplateModuleNotFound(Exception):
+    """The template module could not be found for a given model"""
+    pass
 
 class classonlymethod(classmethod):
     def __get__(self, instance, owner):
@@ -16,3 +29,31 @@ def _(val):
     May implement late
     """
     return val
+
+
+def model_from_query(query):
+    return query._primary_entity.entities[0]
+
+
+def get_pk_field(obj):
+    if isinstance(obj, Query):
+        model = model_from_query(obj)
+    elif hasattr(obj, '__table__'):
+        model = obj
+    else:
+        raise ValueError('Expected model or Query object, but got %s' % obj)
+
+    primary_keys = [key.name for key in class_mapper(model).primary_key]
+    if len(primary_keys) != 1:
+        raise MultiplePrimaryKeysFound('Only models with a single primary key are supported by pyramid_views')
+    return getattr(model, primary_keys[0])
+
+
+def get_template_package_name(model):
+    """Get the template package for a given model"""
+    module_name = model.__module__
+    matches = re.match(r'(.*)\.(.*?)', module_name)
+    if not matches:
+        import pdb; pdb.set_trace()
+        raise TemplateModuleNotFound('Could not determine template module for model %s in module %s' % (model, module_name))
+    return matches.group(1)

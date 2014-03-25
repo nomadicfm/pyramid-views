@@ -55,11 +55,11 @@ class AboutTemplateView(TemplateView):
         return self.render_to_response({})
 
     def get_template_names(self):
-        return ['tests.templates:generic_views/about.html']
+        return ['tests:templates/about.html']
 
 
 class AboutTemplateAttributeView(TemplateView):
-    template_name = 'tests.templates:generic_views/about.html'
+    template_name = 'tests:templates/about.html'
 
     def get(self, request):
         return self.render_to_response(context={})
@@ -298,7 +298,7 @@ class TemplateViewTest(BaseTest):
         Test a completely generic view that renders a template on GET
         with the template name as an argument at instantiation.
         """
-        self._assert_about(TemplateView.as_view(template_name='tests.templates:generic_views/about.html')(
+        self._assert_about(TemplateView.as_view(template_name='tests:templates/about.html')(
             DummyRequest(path='/about/', method='GET')
         ))
 
@@ -310,7 +310,7 @@ class TemplateViewTest(BaseTest):
         self.assertRaises(ImproperlyConfigured, view, DummyRequest(path='/', method='GET'))
 
     def test_content_type(self):
-        view = TemplateView.as_view(template_name='tests.templates:generic_views/robots.txt', content_type='text/plain')
+        view = TemplateView.as_view(template_name='tests:templates/robots.txt', content_type='text/plain')
         response = view(DummyRequest(path='/', method='GET'))
         self.assertEqual(response.headers['Content-Type'], 'text/plain; charset=UTF-8')
 

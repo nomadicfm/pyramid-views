@@ -25,31 +25,28 @@ from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from zope.sqlalchemy import ZopeTransactionExtension
+from .base import session
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
-# Note that at the time of writing the existing production DB did not following
-# this naming convention.
 Base.metadata = MetaData()
+Base.session = session
 
 
+class Artist(Base):
+    __tablename__ = 'artist'
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(100))
 
-# @python_2_unicode_compatible
-# class Artist(models.Model):
-#     name = models.CharField(max_length=100)
-#
-#     class Meta:
-#         ordering = ['name']
-#         verbose_name = 'professional artist'
-#         verbose_name_plural = 'professional artists'
-#
-#     def __str__(self):
-#         return self.name
-#
-#     def get_absolute_url(self):
-#         return reverse('artist_detail', kwargs={'pk': self.id})
-#
-#
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'professional artist'
+        verbose_name_plural = 'professional artists'
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('artist_detail', kwargs={'pk': self.id})
 
 book_authors_table = Table('book_authors', Base.metadata,
     Column('book_id', Integer, ForeignKey('book.id')),
@@ -82,12 +79,16 @@ class Book(Base):
 
     def __str__(self):
         return self.name
-#
-#
-# class Page(models.Model):
-#     content = models.TextField()
-#     template = models.CharField(max_length=300)
-#
-#
-# class BookSigning(models.Model):
-#     event_date = models.DateTimeField()
+
+
+class Page(Base):
+    __tablename__ = 'page'
+    id = Column(Integer, primary_key=True)
+    content = Column(UnicodeText())
+    template = Column(Unicode(300))
+
+
+class BookSigning(Base):
+    __tablename__ = 'book_signing'
+    id = Column(Integer, primary_key=True)
+    event_date = Column(DateTime())

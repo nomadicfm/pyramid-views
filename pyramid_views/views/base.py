@@ -27,6 +27,7 @@ class ContextMixin(object):
     def get_context_data(self, **kwargs):
         if 'view' not in kwargs:
             kwargs['view'] = self
+        self._context = kwargs
         return kwargs
 
 
@@ -89,7 +90,13 @@ class View(object):
             handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
         else:
             handler = self.http_method_not_allowed
-        return handler(request, *args, **kwargs)
+        response = handler(request, *args, **kwargs)
+        # Expose the context if present (for the benefit of testing)
+        if hasattr(self, '_context'):
+            response.context = self._context
+        if hasattr(self, '_template_names'):
+            response.template_names = self._template_names
+        return response
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning('Method Not Allowed (%s): %s', request.method, request.path,
@@ -132,6 +139,7 @@ class TemplateResponseMixin(object):
         )
         if self.content_type:
             response.content_type = self.content_type
+        self._context = context
         return response
 
     def get_template_names(self):
@@ -145,7 +153,9 @@ class TemplateResponseMixin(object):
                 "TemplateResponseMixin requires either a definition of "
                 "'template_name' or an implementation of 'get_template_names()'")
         else:
-            return [self.template_name]
+            # Save for later for benefit of testing
+            self._template_names = [self.template_name]
+            return self._template_names
 
 
 class TemplateView(TemplateResponseMixin, ContextMixin, View):
@@ -155,7 +165,8 @@ class TemplateView(TemplateResponseMixin, ContextMixin, View):
     """
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        return self.render_to_response(context)
+        response = self.render_to_response(context)
+        return response
 
 
 class RedirectView(View):

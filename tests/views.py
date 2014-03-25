@@ -7,14 +7,16 @@ from __future__ import unicode_literals
 # from django.views import generic
 
 # from .test_forms import AuthorForm, ContactForm
-from .models import Author, Book
+from sqlalchemy.orm import Query
+from .models import Author, Book, Artist, Page
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
+from pyramid_views.views.detail import DetailView
 from pyramid_views.views.list import MultipleObjectMixin
 
 
 class CustomTemplateView(TemplateView):
-    template_name = 'generic_views/about.html'
+    template_name = 'about.html'
 
     def get_context_data(self, **kwargs):
         context = super(CustomTemplateView, self).get_context_data(**kwargs)
@@ -22,25 +24,25 @@ class CustomTemplateView(TemplateView):
         return context
 
 
-# class ObjectDetail(generic.DetailView):
-#     template_name = 'generic_views/detail.html'
-#
-#     def get_object(self):
-#         return {'foo': 'bar'}
-#
-#
-# class ArtistDetail(generic.DetailView):
-#     queryset = Artist.objects.all()
-#
-#
-# class AuthorDetail(generic.DetailView):
-#     queryset = Author.objects.all()
-#
-#
-# class PageDetail(generic.DetailView):
-#     queryset = Page.objects.all()
-#     template_name_field = 'template'
-#
+class ObjectDetail(DetailView):
+    template_name = 'tests:templates/detail.html'
+
+    def get_object(self):
+        return {'foo': 'bar'}
+
+
+class ArtistDetail(DetailView):
+    query = Query(Artist)
+
+
+class AuthorDetail(DetailView):
+    query = Query(Author)
+
+
+class PageDetail(DetailView):
+    query = Query(Page)
+    template_name_field = 'template'
+
 #
 # class DictList(generic.ListView):
 #     """A ListView that doesn't use a model."""
@@ -48,11 +50,11 @@ class CustomTemplateView(TemplateView):
 #         {'first': 'John', 'last': 'Lennon'},
 #         {'first': 'Yoko', 'last': 'Ono'}
 #     ]
-#     template_name = 'generic_views/list.html'
+#     template_name = 'list.html'
 #
 #
 # class ArtistList(generic.ListView):
-#     template_name = 'generic_views/list.html'
+#     template_name = 'list.html'
 #     queryset = Artist.objects.all()
 #
 #
@@ -83,7 +85,7 @@ class CustomTemplateView(TemplateView):
 # class ContactView(generic.FormView):
 #     form_class = ContactForm
 #     success_url = reverse_lazy('authors_list')
-#     template_name = 'generic_views/form.html'
+#     template_name = 'form.html'
 #
 #
 # class ArtistCreate(generic.CreateView):
@@ -113,7 +115,7 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 # class SpecializedAuthorCreate(generic.CreateView):
 #     model = Author
 #     form_class = AuthorForm
-#     template_name = 'generic_views/form.html'
+#     template_name = 'form.html'
 #     context_object_name = 'thingy'
 #
 #     def get_success_url(self):
@@ -151,7 +153,7 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 # class SpecializedAuthorUpdate(generic.UpdateView):
 #     model = Author
 #     form_class = AuthorForm
-#     template_name = 'generic_views/form.html'
+#     template_name = 'form.html'
 #     context_object_name = 'thingy'
 #
 #     def get_success_url(self):
@@ -169,7 +171,7 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 #
 # class SpecializedAuthorDelete(generic.DeleteView):
 #     queryset = Author.objects.all()
-#     template_name = 'generic_views/confirm_delete.html'
+#     template_name = 'confirm_delete.html'
 #     context_object_name = 'thingy'
 #
 #     def get_success_url(self):
@@ -259,7 +261,7 @@ class CustomSingleObjectView(detail.SingleObjectMixin, View):
 #     # use the same templates as for books
 #
 #     def get_template_names(self):
-#         return ['generic_views/book%s.html' % self.template_name_suffix]
+#         return ['book%s.html' % self.template_name_suffix]
 #
 #
 # class BookSigningArchive(BookSigningConfig, generic.ArchiveIndexView):
@@ -298,7 +300,7 @@ class CustomSingleObjectView(detail.SingleObjectMixin, View):
 #
 # class NonModelDetail(generic.DetailView):
 #
-#     template_name = 'generic_views/detail.html'
+#     template_name = 'detail.html'
 #     model = NonModel
 #
 #     def get_object(self, queryset=None):
