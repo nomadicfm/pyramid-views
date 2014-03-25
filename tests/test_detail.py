@@ -74,56 +74,59 @@ class DetailViewTest(BaseTest):
         self.assertEqual(res.context['author'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
-    def test_verbose_name(self):
-        res = self.client.get('/detail/artist/1/')
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Artist.objects.get(pk=1))
-        self.assertEqual(res.context['artist'], Artist.objects.get(pk=1))
-        self.assertTemplateUsed(res, 'tests:templates/artist_detail.html')
-
     def test_template_name(self):
-        res = self.client.get('/detail/author/1/template_name/')
+        self.author()
+        view = views.AuthorDetail.as_view(template_name='tests:templates/about.html')
+        res = view(DummyRequest(path='/foo', method='GET'), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=1))
-        self.assertEqual(res.context['author'], Author.objects.get(pk=1))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/about.html')
 
     def test_template_name_suffix(self):
-        res = self.client.get('/detail/author/1/template_name_suffix/')
+        self.author()
+        view = views.AuthorDetail.as_view(template_name_suffix='_view')
+        res = view(DummyRequest(path='/foo', method='GET'), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=1))
-        self.assertEqual(res.context['author'], Author.objects.get(pk=1))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/author_view.html')
 
     def test_template_name_field(self):
-        res = self.client.get('/detail/page/1/field/')
+        self.page()
+        view = views.PageDetail.as_view()
+        res = view(DummyRequest(path='/foo', method='GET'), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Page.objects.get(pk=1))
-        self.assertEqual(res.context['page'], Page.objects.get(pk=1))
+        self.assertEqual(res.context['object'], session.query(Page).filter(Page.id==1).one())
+        self.assertEqual(res.context['page'], session.query(Page).filter(Page.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/page_template.html')
 
     def test_context_object_name(self):
-        res = self.client.get('/detail/author/1/context_object_name/')
+        self.author()
+        view = views.AuthorDetail.as_view(context_object_name='thingy')
+        res = view(DummyRequest(path='/foo', method='GET'), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=1))
-        self.assertEqual(res.context['thingy'], Author.objects.get(pk=1))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['thingy'], session.query(Author).filter(Author.id==1).one())
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_duplicated_context_object_name(self):
-        res = self.client.get('/detail/author/1/dupe_context_object_name/')
+        self.author()
+        view = views.AuthorDetail.as_view(context_object_name='object')
+        res = view(DummyRequest(path='/foo', method='GET'), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=1))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
-    def test_invalid_url(self):
-        self.assertRaises(AttributeError, self.client.get, '/detail/author/invalid/url/')
+    def test_invalid_parameters(self):
+        self.assertRaises(AttributeError, views.AuthorDetail.as_view(), DummyRequest(path='/foo', method='GET'))
 
-    def test_invalid_queryset(self):
-        self.assertRaises(ImproperlyConfigured, self.client.get, '/detail/author/invalid/qs/')
+    def test_invalid_query(self):
+        self.assertRaises(ImproperlyConfigured, views.AuthorDetail.as_view(query=None), DummyRequest(path='/foo', method='GET'))
 
     def test_non_model_object_with_meta(self):
-        res = self.client.get('/detail/nonmodel/1/')
-        self.assertEqual(res.status_code, 200)
+        view = views.NonModelDetail.as_view()
+        res = view(DummyRequest(path='/foo', method='GET'), pk=1)
         self.assertEqual(res.context['object'].id, "non_model_1")

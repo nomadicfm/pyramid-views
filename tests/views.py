@@ -292,20 +292,19 @@ class CustomSingleObjectView(detail.SingleObjectMixin, View):
 #     context_object_name = 'book'
 #
 #
-# class NonModel(object):
-#     id = "non_model_1"
-#
-#     _meta = None
-#
-#
-# class NonModelDetail(generic.DetailView):
-#
-#     template_name = 'detail.html'
-#     model = NonModel
-#
-#     def get_object(self, queryset=None):
-#         return NonModel()
-#
+class NonModel(object):
+    id = "non_model_1"
+
+    _meta = None
+
+
+class NonModelDetail(DetailView):
+    template_name = 'tests:templates/detail.html'
+    model = NonModel
+
+    def get_object(self, queryset=None):
+        return NonModel()
+
 
 class ObjectDoesNotExistDetail(DetailView):
     def get_query(self):

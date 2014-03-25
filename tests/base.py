@@ -26,6 +26,7 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         super(BaseTest, self).setUp()
         from .models import Base
+        Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
 
         self.app = TestApp(app)
@@ -47,3 +48,7 @@ class BaseTest(unittest.TestCase):
     def author(self, name=u'Roberto Bolaño', slug='roberto-bolano'):
         from .models import Author
         session.add(Author(name=name, slug=slug))
+
+    def page(self, template=u'tests:templates/page_template.html', content='I was once bitten by a moose'):
+        from .models import Page
+        session.add(Page(template=template, content=content))
