@@ -63,6 +63,5 @@ def get_template_package_name(model):
     module_name = model.__module__
     matches = re.match(r'(.*)\.(.*?)', module_name)
     if not matches:
-        import pdb; pdb.set_trace()
         raise TemplateModuleNotFound('Could not determine template module for model %s in module %s' % (model, module_name))
     return matches.group(1)

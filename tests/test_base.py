@@ -316,7 +316,6 @@ class TemplateViewTest(BaseTest):
 
 
 class RedirectViewTest(BaseTest):
-    urls = 'generic_views.urls'
 
     def test_no_url(self):
         "Without any configuration, returns HTTP 410 GONE"

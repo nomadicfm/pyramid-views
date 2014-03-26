@@ -71,7 +71,7 @@ class CreateViewTests(TestCase):
         self.assertIsInstance(res.context['view'], View)
         self.assertFalse('object' in res.context)
         self.assertFalse('author' in res.context)
-        self.assertTemplateUsed(res, 'generic_views/author_form.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
         res = self.client.post('/edit/authors/create/',
                         {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
@@ -83,7 +83,7 @@ class CreateViewTests(TestCase):
         res = self.client.post('/edit/authors/create/',
                         {'name': 'A' * 101, 'slug': 'randall-munroe'})
         self.assertEqual(res.status_code, 200)
-        self.assertTemplateUsed(res, 'generic_views/author_form.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
         self.assertEqual(len(res.context['form'].errors), 1)
         self.assertEqual(Author.objects.count(), 0)
 
@@ -116,7 +116,7 @@ class CreateViewTests(TestCase):
         self.assertIsInstance(res.context['form'], views.AuthorForm)
         self.assertFalse('object' in res.context)
         self.assertFalse('author' in res.context)
-        self.assertTemplateUsed(res, 'generic_views/form.html')
+        self.assertTemplateUsed(res, 'tests:templates/form.html')
 
         res = self.client.post('/edit/authors/create/special/',
                             {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
@@ -181,7 +181,7 @@ class UpdateViewTests(TestCase):
         self.assertIsInstance(res.context['form'], forms.ModelForm)
         self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
         self.assertEqual(res.context['author'], Author.objects.get(pk=a.pk))
-        self.assertTemplateUsed(res, 'generic_views/author_form.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
         # Modification with both POST and PUT (browser compatible)
         res = self.client.post('/edit/author/%d/update/' % a.pk,
@@ -198,7 +198,7 @@ class UpdateViewTests(TestCase):
         )
         res = self.client.get('/edit/author/%d/update/' % a.pk)
         self.assertEqual(res.status_code, 200)
-        self.assertTemplateUsed(res, 'generic_views/author_form.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
         res = self.client.put('/edit/author/%d/update/' % a.pk,
                         {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
@@ -218,7 +218,7 @@ class UpdateViewTests(TestCase):
         res = self.client.post('/edit/author/%d/update/' % a.pk,
                         {'name': 'A' * 101, 'slug': 'randall-munroe'})
         self.assertEqual(res.status_code, 200)
-        self.assertTemplateUsed(res, 'generic_views/author_form.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
         self.assertEqual(len(res.context['form'].errors), 1)
         self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
 
@@ -264,7 +264,7 @@ class UpdateViewTests(TestCase):
         self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
         self.assertEqual(res.context['thingy'], Author.objects.get(pk=a.pk))
         self.assertFalse('author' in res.context)
-        self.assertTemplateUsed(res, 'generic_views/form.html')
+        self.assertTemplateUsed(res, 'tests:templates/form.html')
 
         res = self.client.post('/edit/author/%d/update/special/' % a.pk,
                         {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
@@ -295,7 +295,7 @@ class UpdateViewTests(TestCase):
         self.assertIsInstance(res.context['view'], View)
         self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
         self.assertEqual(res.context['author'], Author.objects.get(pk=a.pk))
-        self.assertTemplateUsed(res, 'generic_views/author_form.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
         # Modification with both POST and PUT (browser compatible)
         res = self.client.post('/edit/author/update/',
@@ -314,7 +314,7 @@ class DeleteViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
         self.assertEqual(res.context['author'], Author.objects.get(pk=a.pk))
-        self.assertTemplateUsed(res, 'generic_views/author_confirm_delete.html')
+        self.assertTemplateUsed(res, 'tests:templates/author_confirm_delete.html')
 
         # Deletion with POST
         res = self.client.post('/edit/author/%d/delete/' % a.pk)
@@ -351,7 +351,7 @@ class DeleteViewTests(TestCase):
         self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
         self.assertEqual(res.context['thingy'], Author.objects.get(pk=a.pk))
         self.assertFalse('author' in res.context)
-        self.assertTemplateUsed(res, 'generic_views/confirm_delete.html')
+        self.assertTemplateUsed(res, 'tests:templates/confirm_delete.html')
 
         res = self.client.post('/edit/author/%d/delete/special/' % a.pk)
         self.assertEqual(res.status_code, 302)

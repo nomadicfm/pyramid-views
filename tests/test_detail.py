@@ -15,8 +15,6 @@ from .models import session
 
 
 class DetailViewTest(BaseTest):
-    fixtures = ['generic-views-test-data.json']
-    urls = 'generic_views.urls'
 
     def test_simple_object(self):
         view = views.ObjectDetail.as_view()

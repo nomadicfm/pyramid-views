@@ -9,10 +9,11 @@ from __future__ import unicode_literals
 # from .test_forms import AuthorForm, ContactForm
 from sqlalchemy.orm import Query
 from .models import Author, Book, Artist, Page
+from pyramid_views.paginator import Paginator
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
 from pyramid_views.views.detail import DetailView
-from pyramid_views.views.list import MultipleObjectMixin
+from pyramid_views.views.list import MultipleObjectMixin, ListView
 
 
 class CustomTemplateView(TemplateView):
@@ -43,43 +44,43 @@ class PageDetail(DetailView):
     query = Query(Page)
     template_name_field = 'template'
 
-#
-# class DictList(generic.ListView):
-#     """A ListView that doesn't use a model."""
-#     queryset = [
-#         {'first': 'John', 'last': 'Lennon'},
-#         {'first': 'Yoko', 'last': 'Ono'}
-#     ]
-#     template_name = 'list.html'
-#
-#
-# class ArtistList(generic.ListView):
-#     template_name = 'list.html'
-#     queryset = Artist.objects.all()
-#
-#
-# class AuthorList(generic.ListView):
-#     queryset = Author.objects.all()
-#
-#
-# class CustomPaginator(Paginator):
-#     def __init__(self, queryset, page_size, orphans=0, allow_empty_first_page=True):
-#         super(CustomPaginator, self).__init__(
-#             queryset,
-#             page_size,
-#             orphans=2,
-#             allow_empty_first_page=allow_empty_first_page)
-#
-#
-# class AuthorListCustomPaginator(AuthorList):
-#     paginate_by = 5
-#
-#     def get_paginator(self, queryset, page_size, orphans=0, allow_empty_first_page=True):
-#         return super(AuthorListCustomPaginator, self).get_paginator(
-#             queryset,
-#             page_size,
-#             orphans=2,
-#             allow_empty_first_page=allow_empty_first_page)
+
+class DictList(ListView):
+    """A ListView that doesn't use a model."""
+    queryset = [
+        {'first': 'John', 'last': 'Lennon'},
+        {'first': 'Yoko', 'last': 'Ono'}
+    ]
+    template_name = 'tests:templates/list.html'
+
+
+class ArtistList(ListView):
+    template_name = 'tests:templates/list.html'
+    queryset = Query(Artist)
+
+
+class AuthorList(ListView):
+    queryset = Query(Author)
+
+
+class CustomPaginator(Paginator):
+    def __init__(self, queryset, page_size, orphans=0, allow_empty_first_page=True):
+        super(CustomPaginator, self).__init__(
+            queryset,
+            page_size,
+            orphans=2,
+            allow_empty_first_page=allow_empty_first_page)
+
+
+class AuthorListCustomPaginator(AuthorList):
+    paginate_by = 5
+
+    def get_paginator(self, queryset, page_size, orphans=0, allow_empty_first_page=True):
+        return super(AuthorListCustomPaginator, self).get_paginator(
+            queryset,
+            page_size,
+            orphans=2,
+            allow_empty_first_page=allow_empty_first_page)
 #
 #
 # class ContactView(generic.FormView):

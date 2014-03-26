@@ -28,7 +28,7 @@ class ArchiveIndexViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['date_list']), list(Book.objects.dates('pubdate', 'year', 'DESC')))
         self.assertEqual(list(res.context['latest']), list(Book.objects.all()))
-        self.assertTemplateUsed(res, 'generic_views/book_archive.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive.html')
 
     def test_archive_view_context_object_name(self):
         res = self.client.get('/dates/books/context_object_name/')
@@ -36,7 +36,7 @@ class ArchiveIndexViewTests(TestCase):
         self.assertEqual(list(res.context['date_list']), list(Book.objects.dates('pubdate', 'year', 'DESC')))
         self.assertEqual(list(res.context['thingies']), list(Book.objects.all()))
         self.assertFalse('latest' in res.context)
-        self.assertTemplateUsed(res, 'generic_views/book_archive.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive.html')
 
     def test_empty_archive_view(self):
         Book.objects.all().delete()
@@ -48,21 +48,21 @@ class ArchiveIndexViewTests(TestCase):
         res = self.client.get('/dates/books/allow_empty/')
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['date_list']), [])
-        self.assertTemplateUsed(res, 'generic_views/book_archive.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive.html')
 
     def test_archive_view_template(self):
         res = self.client.get('/dates/books/template_name/')
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['date_list']), list(Book.objects.dates('pubdate', 'year', 'DESC')))
         self.assertEqual(list(res.context['latest']), list(Book.objects.all()))
-        self.assertTemplateUsed(res, 'generic_views/list.html')
+        self.assertTemplateUsed(res, 'tests:templates/list.html')
 
     def test_archive_view_template_suffix(self):
         res = self.client.get('/dates/books/template_name_suffix/')
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['date_list']), list(Book.objects.dates('pubdate', 'year', 'DESC')))
         self.assertEqual(list(res.context['latest']), list(Book.objects.all()))
-        self.assertTemplateUsed(res, 'generic_views/book_detail.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_detail.html')
 
     def test_archive_view_invalid(self):
         self.assertRaises(ImproperlyConfigured, self.client.get, '/dates/books/invalid/')
@@ -78,7 +78,7 @@ class ArchiveIndexViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['date_list']), list(Book.objects.dates('pubdate', 'year', 'DESC')))
         self.assertEqual(list(res.context['latest']), list(Book.objects.all()[0:10]))
-        self.assertTemplateUsed(res, 'generic_views/book_archive.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive.html')
 
         res = self.client.get('/dates/books/paginated/?page=2')
         self.assertEqual(res.status_code, 200)
@@ -130,7 +130,7 @@ class YearArchiveViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['date_list']), [datetime.date(2008, 10, 1)])
         self.assertEqual(res.context['year'], datetime.date(2008, 1, 1))
-        self.assertTemplateUsed(res, 'generic_views/book_archive_year.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_year.html')
 
         # Since allow_empty=False, next/prev years must be valid (#7164)
         self.assertEqual(res.context['next_year'], None)
@@ -142,7 +142,7 @@ class YearArchiveViewTests(TestCase):
         self.assertEqual(list(res.context['date_list']), [datetime.date(2006, 5, 1)])
         self.assertEqual(list(res.context['book_list']), list(Book.objects.filter(pubdate__year=2006)))
         self.assertEqual(list(res.context['object_list']), list(Book.objects.filter(pubdate__year=2006)))
-        self.assertTemplateUsed(res, 'generic_views/book_archive_year.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_year.html')
 
     def test_year_view_empty(self):
         res = self.client.get('/dates/books/1999/')
@@ -176,7 +176,7 @@ class YearArchiveViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['book_list']), list(Book.objects.filter(pubdate__year=2006)))
         self.assertEqual(list(res.context['object_list']), list(Book.objects.filter(pubdate__year=2006)))
-        self.assertTemplateUsed(res, 'generic_views/book_archive_year.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_year.html')
 
     def test_year_view_invalid_pattern(self):
         res = self.client.get('/dates/books/no_year/')
@@ -213,7 +213,7 @@ class MonthArchiveViewTests(TestCase):
     def test_month_view(self):
         res = self.client.get('/dates/books/2008/oct/')
         self.assertEqual(res.status_code, 200)
-        self.assertTemplateUsed(res, 'generic_views/book_archive_month.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_month.html')
         self.assertEqual(list(res.context['date_list']), [datetime.date(2008, 10, 1)])
         self.assertEqual(list(res.context['book_list']),
                          list(Book.objects.filter(pubdate=datetime.date(2008, 10, 1))))
@@ -278,7 +278,7 @@ class MonthArchiveViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['book_list']), list(Book.objects.filter(pubdate__year=2008, pubdate__month=10)))
         self.assertEqual(list(res.context['object_list']), list(Book.objects.filter(pubdate__year=2008, pubdate__month=10)))
-        self.assertTemplateUsed(res, 'generic_views/book_archive_month.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_month.html')
 
     def test_custom_month_format(self):
         res = self.client.get('/dates/books/2008/10/')
@@ -340,7 +340,7 @@ class WeekArchiveViewTests(TestCase):
     def test_week_view(self):
         res = self.client.get('/dates/books/2008/week/39/')
         self.assertEqual(res.status_code, 200)
-        self.assertTemplateUsed(res, 'generic_views/book_archive_week.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_week.html')
         self.assertEqual(res.context['book_list'][0], Book.objects.get(pubdate=datetime.date(2008, 10, 1)))
         self.assertEqual(res.context['week'], datetime.date(2008, 9, 28))
 
@@ -402,7 +402,7 @@ class WeekArchiveViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['book_list']), list(Book.objects.filter(pubdate__gte=week_start, pubdate__lt=week_end)))
         self.assertEqual(list(res.context['object_list']), list(Book.objects.filter(pubdate__gte=week_start, pubdate__lt=week_end)))
-        self.assertTemplateUsed(res, 'generic_views/book_archive_week.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_week.html')
 
     def test_week_view_invalid_pattern(self):
         res = self.client.get('/dates/books/2007/week/no_week/')
@@ -437,7 +437,7 @@ class DayArchiveViewTests(TestCase):
     def test_day_view(self):
         res = self.client.get('/dates/books/2008/oct/01/')
         self.assertEqual(res.status_code, 200)
-        self.assertTemplateUsed(res, 'generic_views/book_archive_day.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_day.html')
         self.assertEqual(list(res.context['book_list']),
                          list(Book.objects.filter(pubdate=datetime.date(2008, 10, 1))))
         self.assertEqual(res.context['day'], datetime.date(2008, 10, 1))
@@ -504,7 +504,7 @@ class DayArchiveViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['book_list']), list(Book.objects.filter(pubdate__year=2008, pubdate__month=10, pubdate__day=1)))
         self.assertEqual(list(res.context['object_list']), list(Book.objects.filter(pubdate__year=2008, pubdate__month=10, pubdate__day=1)))
-        self.assertTemplateUsed(res, 'generic_views/book_archive_day.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_archive_day.html')
 
     def test_next_prev_context(self):
         res = self.client.get('/dates/books/2008/oct/01/')
@@ -557,7 +557,7 @@ class DateDetailViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['object'], Book.objects.get(pk=1))
         self.assertEqual(res.context['book'], Book.objects.get(pk=1))
-        self.assertTemplateUsed(res, 'generic_views/book_detail.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_detail.html')
 
     def test_date_detail_by_slug(self):
         res = self.client.get('/dates/books/2006/may/01/byslug/dreaming-in-code/')
@@ -580,7 +580,7 @@ class DateDetailViewTests(TestCase):
         res = self.client.get('/dates/books/%s/%s/allow_future/' % (urlbit, b.id))
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['book'], b)
-        self.assertTemplateUsed(res, 'generic_views/book_detail.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_detail.html')
 
     def test_invalid_url(self):
         self.assertRaises(AttributeError, self.client.get, "/dates/books/2008/oct/01/nopk/")
@@ -596,7 +596,7 @@ class DateDetailViewTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['object'], Book.objects.get(pk=2))
         self.assertEqual(res.context['book'], Book.objects.get(pk=2))
-        self.assertTemplateUsed(res, 'generic_views/book_detail.html')
+        self.assertTemplateUsed(res, 'tests:templates/book_detail.html')
 
         res = self.client.get(
             '/dates/books/get_object_custom_queryset/2008/oct/01/1/')

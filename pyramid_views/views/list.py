@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from pyramid import httpexceptions
 from sqlalchemy.orm import Query
+from pyramid_views import utils
 
 from pyramid_views.paginator import Paginator, InvalidPage
 # from django.core.exceptions import ImproperlyConfigured
@@ -34,10 +35,8 @@ class MultipleObjectMixin(ContextMixin):
         """
         if self.queryset is not None:
             queryset = self.queryset
-            if isinstance(queryset, Query):
-                queryset = queryset.all()
         elif self.model is not None:
-            queryset = Query(self.model).all()
+            queryset = Query(self.model)
         else:
             raise ImproperlyConfigured(
                 "%(cls)s is missing a QuerySet. Define "
@@ -46,6 +45,12 @@ class MultipleObjectMixin(ContextMixin):
                     'cls': self.__class__.__name__
                 }
             )
+
+        # Set the session on the query (there may be a better way of handling this which
+        # doesn't involve using a private API)
+        if isinstance(queryset, Query):
+            queryset.session = utils.model_from_query(queryset).session
+
         return queryset
 
     def paginate_queryset(self, queryset, page_size):
@@ -108,8 +113,8 @@ class MultipleObjectMixin(ContextMixin):
         """
         if self.context_object_name:
             return self.context_object_name
-        elif hasattr(object_list, 'model'):
-            return '%s_list' % object_list.model._meta.model_name
+        elif isinstance(object_list, Query):
+            return '%s_list' % utils.model_from_query(object_list).__tablename__
         else:
             return None
 
@@ -148,7 +153,6 @@ class BaseListView(MultipleObjectMixin, View):
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_query()
         allow_empty = self.get_allow_empty()
-
         if not allow_empty:
             # When pagination is enabled and object_list is a queryset,
             # it's better to do a cheap query than to load the unpaginated
@@ -157,7 +161,7 @@ class BaseListView(MultipleObjectMixin, View):
                     and hasattr(self.object_list, 'exists')):
                 is_empty = not self.object_list.exists()
             else:
-                is_empty = len(self.object_list) == 0
+                is_empty = self.object_list.count() == 0
             if is_empty:
                 raise httpexceptions.HTTPNotFound(_("Empty list and '%(class_name)s.allow_empty' is False.")
                         % {'class_name': self.__class__.__name__})
@@ -187,9 +191,13 @@ class MultipleObjectTemplateResponseMixin(TemplateResponseMixin):
         # app and model name. This name gets put at the end of the template
         # name list so that user-supplied names override the automatically-
         # generated ones.
-        if hasattr(self.object_list, 'model'):
-            opts = self.object_list.model._meta
-            names.append("%s/%s%s.html" % (opts.app_label, opts.model_name, self.template_name_suffix))
+        if isinstance(self.object_list, Query):
+            model = utils.model_from_query(self.object_list)
+            package = utils.get_template_package_name(model)
+            names.append("%s:templates/%s%s.html" % (package, model.__tablename__, self.template_name_suffix))
+
+        # For benefit of tests
+        self._template_names = names
 
         return names
 

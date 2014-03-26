@@ -1,8 +1,9 @@
 # coding=utf-8
+from contextlib import contextmanager
 import unittest
 from pyramid import testing
 from pyramid.config import Configurator
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
@@ -33,6 +34,20 @@ class BaseTest(unittest.TestCase):
         self.config = testing.setUp()
         self.config.include('pyramid_jinja2')
         self.config.add_renderer('.html', 'pyramid_jinja2.renderer_factory')
+        self._query_count = 0
+
+    @contextmanager
+    def assertNumQueries(self, num_queries):
+        statements = []
+        def handle_query(conn, cursor, statement, parameters, *args, **kwargs):
+            print statement + "\n"
+            statements.append(statement)
+        session.flush()
+        event.listen(engine, "before_cursor_execute", handle_query)
+        yield
+        session.flush()
+        event.remove(engine, "before_cursor_execute", handle_query)
+        self.assertEqual(len(statements), num_queries, "Ran %s queries, expected %s" % (len(statements), num_queries))
 
     def tearDown(self):
         super(BaseTest, self).tearDown()
@@ -43,12 +58,18 @@ class BaseTest(unittest.TestCase):
 
     def artist(self, name='Rene Magritte'):
         from .models import Artist
-        session.add(Artist(name=name))
+        artist = Artist(name=name)
+        session.add(artist)
+        return artist
 
     def author(self, name=u'Roberto Bolaño', slug='roberto-bolano'):
         from .models import Author
-        session.add(Author(name=name, slug=slug))
+        author = Author(name=name, slug=slug)
+        session.add(author)
+        return author
 
     def page(self, template=u'tests:templates/page_template.html', content='I was once bitten by a moose'):
         from .models import Page
-        session.add(Page(template=template, content=content))
+        page = Page(template=template, content=content)
+        session.add(page)
+        return page
