@@ -27,6 +27,8 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         super(BaseTest, self).setUp()
         from .models import Base
+        session.expire_all()
+        session.flush()
         Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
 
@@ -34,10 +36,17 @@ class BaseTest(unittest.TestCase):
         self.config = testing.setUp()
         self.config.include('pyramid_jinja2')
         self.config.add_renderer('.html', 'pyramid_jinja2.renderer_factory')
-        self._query_count = 0
+
+    def tearDown(self):
+        super(BaseTest, self).tearDown()
+        testing.tearDown()
 
     @contextmanager
     def assertNumQueries(self, num_queries):
+        # Note that there is a bug with ``assertNumQueries()``
+        # that requires the first query in a test to be wrapped
+        # in a `assertNumQueries()`` context.
+
         statements = []
         def handle_query(conn, cursor, statement, parameters, *args, **kwargs):
             print statement + "\n"
@@ -48,10 +57,6 @@ class BaseTest(unittest.TestCase):
         session.flush()
         event.remove(engine, "before_cursor_execute", handle_query)
         self.assertEqual(len(statements), num_queries, "Ran %s queries, expected %s" % (len(statements), num_queries))
-
-    def tearDown(self):
-        super(BaseTest, self).tearDown()
-        testing.tearDown()
 
     def assertTemplateUsed(self, res, template_name):
         self.assertIn(template_name, res.template_names)
