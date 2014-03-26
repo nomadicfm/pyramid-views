@@ -83,16 +83,19 @@ class BaseTest(unittest.TestCase):
         from .models import Artist
         artist = Artist(name=name)
         session.add(artist)
+        session.flush()
         return artist
 
     def author(self, name=u'Roberto Bolaño', slug='roberto-bolano'):
         from .models import Author
         author = Author(name=name, slug=slug)
         session.add(author)
+        session.flush()
         return author
 
     def page(self, template=u'tests:templates/page_template.html', content='I was once bitten by a moose'):
         from .models import Page
         page = Page(template=template, content=content)
         session.add(page)
+        session.flush()
         return page

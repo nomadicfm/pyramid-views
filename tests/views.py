@@ -13,8 +13,9 @@ from pyramid_views.paginator import Paginator
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
 from pyramid_views.views.detail import DetailView
-from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin
+from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin, UpdateView
 from pyramid_views.views.list import MultipleObjectMixin, ListView
+from tests.base import session
 from tests.forms import ContactForm, AuthorForm
 
 
@@ -93,12 +94,10 @@ class ContactView(FormView):
 
 class ArtistCreate(CreateView):
     model = Artist
-    fields = '__all__'
 
 
 class NaiveAuthorCreate(CreateView):
     query = Query(Author)
-    fields = '__all__'
 
 
 class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, View):
@@ -127,40 +126,36 @@ class SpecializedAuthorCreate(CreateView):
 # class AuthorCreateRestricted(AuthorCreate):
 #     post = method_decorator(login_required)(AuthorCreate.post)
 #
-#
-# class ArtistUpdate(generic.UpdateView):
-#     model = Artist
-#     fields = '__all__'
-#
-#
-# class NaiveAuthorUpdate(generic.UpdateView):
-#     queryset = Author.objects.all()
-#     fields = '__all__'
-#
-#
-# class AuthorUpdate(generic.UpdateView):
-#     model = Author
-#     success_url = '/list/authors/'
-#     fields = '__all__'
-#
-#
-# class OneAuthorUpdate(generic.UpdateView):
-#     success_url = '/list/authors/'
-#     fields = '__all__'
-#
-#     def get_object(self):
-#         return Author.objects.get(pk=1)
-#
-#
-# class SpecializedAuthorUpdate(generic.UpdateView):
-#     model = Author
-#     form_class = AuthorForm
-#     template_name = 'form.html'
-#     context_object_name = 'thingy'
-#
-#     def get_success_url(self):
-#         return reverse('author_detail', args=[self.object.id])
-#
+
+class ArtistUpdate(UpdateView):
+    model = Artist
+
+
+class NaiveAuthorUpdate(UpdateView):
+    query = Query(Author)
+
+
+class AuthorUpdate(UpdateView):
+    model = Author
+    success_url = '/list/authors/'
+
+
+class OneAuthorUpdate(UpdateView):
+    success_url = '/list/authors/'
+
+    def get_object(self, query=None):
+        return session.query(Author).filter(Author.id==1).one()
+
+
+class SpecializedAuthorUpdate(UpdateView):
+    model = Author
+    form_class = AuthorForm
+    template_name = 'tests:templates/form.html'
+    context_object_name = 'thingy'
+
+    def get_success_url(self):
+        return '/detail/author/%d/' % self.object.id
+
 #
 # class NaiveAuthorDelete(generic.DeleteView):
 #     queryset = Author.objects.all()

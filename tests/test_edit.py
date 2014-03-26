@@ -22,6 +22,7 @@ from . import views
 from .models import Artist, Author
 from tests.base import BaseTest, session
 from tests.forms import AuthorForm
+from tests.views import NaiveAuthorUpdate
 
 
 class FormMixinTests(BaseTest):
@@ -210,136 +211,165 @@ class UpdateViewTests(BaseTest):
     urls = 'generic_views.urls'
 
     def test_update_post(self):
-        a = Author.objects.create(
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.get('/edit/author/%d/update/' % a.pk)
+        view = views.AuthorUpdate.as_view()
+        res = view(DummyRequest(), pk=a.id)
         self.assertEqual(res.status_code, 200)
-        self.assertIsInstance(res.context['form'], forms.ModelForm)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
-        self.assertEqual(res.context['author'], Author.objects.get(pk=a.pk))
+        self.assertIsInstance(res.context['form'], ModelForm)
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==a.id).one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==a.id).one())
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
         # Modification with both POST and PUT (browser compatible)
-        res = self.client.post('/edit/author/%d/update/' % a.pk,
-                        {'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'})
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'}),
+        ), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (xkcd)>'])
 
-    @expectedFailure
     def test_update_put(self):
-        a = Author.objects.create(
+        # Note that this test doesn't work under Django as it doesn't process
+        # PUT data specially, but it does work here as we are interacting
+        # directly with the view.
+
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.get('/edit/author/%d/update/' % a.pk)
+        view = views.AuthorUpdate.as_view()
+        res = view(DummyRequest(), pk=a.id)
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
-        res = self.client.put('/edit/author/%d/update/' % a.pk,
-                        {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
+        res = view(DummyRequest(
+            method='PUT',
+            params=MultiDict({'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'}),
+        ), pk=a.id)
         # Here is the expected failure. PUT data are not processed in any special
         # way by django. So the request will equal to a POST without data, hence
         # the form will be invalid and redisplayed with errors (status code 200).
         # See also #12635
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
 
     def test_update_invalid(self):
-        a = Author.objects.create(
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.post('/edit/author/%d/update/' % a.pk,
-                        {'name': 'A' * 101, 'slug': 'randall-munroe'})
+        view = views.AuthorUpdate.as_view()
+        res = view(DummyRequest(
+            method='PUT',
+            params=MultiDict({'name': 'a' * 101, 'slug': 'randall-munroe'}),
+        ), pk=a.id)
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
         self.assertEqual(len(res.context['form'].errors), 1)
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe>'])
 
     def test_update_with_object_url(self):
-        a = Artist.objects.create(name='Rene Magritte')
-        res = self.client.post('/edit/artists/%d/update/' % a.pk,
-                        {'name': 'Rene Magritte'})
+        a = self.artist(name='Rene Magritte')
+        view = views.ArtistUpdate.as_view()
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Rene Magritte'}),
+        ), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/detail/artist/%d/' % a.pk)
+        self.assertRedirects(res, '/detail/artist/%d/' % a.id)
         self.assertQuerysetEqual(session.query(Artist).all(), ['<Artist: Rene Magritte>'])
 
     def test_update_with_redirect(self):
-        a = Author.objects.create(
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.post('/edit/author/%d/update/redirect/' % a.pk,
-                        {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
+        view = views.AuthorUpdate.as_view(success_url='/edit/authors/create/')
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'}),
+        ), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/edit/authors/create/')
+        self.assertRedirects(res, '/edit/authors/create/')
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
 
     def test_update_with_interpolated_redirect(self):
-        a = Author.objects.create(
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.post('/edit/author/%d/update/interpolate_redirect/' % a.pk,
-                        {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
+        view = views.NaiveAuthorUpdate.as_view(success_url='/edit/author/%(id)d/update/')
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'}),
+        ), pk=a.id)
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
         self.assertEqual(res.status_code, 302)
-        pk = session.query(Author).all()[0].pk
-        self.assertRedirects(res, 'http://testserver/edit/author/%d/update/' % pk)
+        pk = session.query(Author).all()[0].id
+        self.assertRedirects(res, '/edit/author/%d/update/' % pk)
 
     def test_update_with_special_properties(self):
-        a = Author.objects.create(
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.get('/edit/author/%d/update/special/' % a.pk)
+        view = views.SpecializedAuthorUpdate.as_view()
+        res = view(DummyRequest(), pk=a.id)
         self.assertEqual(res.status_code, 200)
         self.assertIsInstance(res.context['form'], views.AuthorForm)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
-        self.assertEqual(res.context['thingy'], Author.objects.get(pk=a.pk))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==a.id).one())
+        self.assertEqual(res.context['thingy'], session.query(Author).filter(Author.id==a.id).one())
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/form.html')
 
-        res = self.client.post('/edit/author/%d/update/special/' % a.pk,
-                        {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'}),
+        ), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/detail/author/%d/' % a.pk)
+        self.assertRedirects(res, '/detail/author/%d/' % a.id)
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
 
     def test_update_without_redirect(self):
-        a = Author.objects.create(
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
         # Should raise exception -- No redirect URL provided, and no
         # get_absolute_url provided
+        view = NaiveAuthorUpdate.as_view()
         with self.assertRaises(ImproperlyConfigured):
-            self.client.post('/edit/author/%d/update/naive/' % a.pk,
-                            {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
+            view(DummyRequest(
+                method='POST',
+                params=MultiDict({'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'}),
+            ), pk=a.id)
 
     def test_update_get_object(self):
-        a = Author.objects.create(
-            pk=1,
+        a = self.author(
             name='Randall Munroe',
             slug='randall-munroe',
         )
-        res = self.client.get('/edit/author/update/')
+        view = views.OneAuthorUpdate.as_view()
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertIsInstance(res.context['form'], forms.ModelForm)
+        self.assertIsInstance(res.context['form'], ModelForm)
         self.assertIsInstance(res.context['view'], View)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
-        self.assertEqual(res.context['author'], Author.objects.get(pk=a.pk))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==a.id).one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==a.id).one())
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
         # Modification with both POST and PUT (browser compatible)
-        res = self.client.post('/edit/author/update/',
-                        {'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'})
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'}),
+        ))
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (xkcd)>'])
 
 
