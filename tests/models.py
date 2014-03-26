@@ -43,10 +43,10 @@ class Artist(Base):
         verbose_name_plural = 'professional artists'
 
     def __str__(self):
-        return self.name
+        return u'<Artist: %s>' % self.name
 
     def get_absolute_url(self):
-        return reverse('artist_detail', kwargs={'pk': self.id})
+        return '/detail/artist/%d/' % self.id
 
 book_authors_table = Table('book_authors', Base.metadata,
     Column('book_id', Integer, ForeignKey('book.id')),

@@ -121,8 +121,8 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             class ModelFormWithModel(ModelForm):
                 class Meta:
                     model = model_
-
-            model_form = wtforms_alchemy.model_form_factory(ModelFormWithModel, only=self.fields)
+                    only = self.fields
+            model_form = wtforms_alchemy.model_form_factory(ModelFormWithModel)
             model_form.Meta.model = model
             return model_form
 
@@ -159,6 +159,8 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             self.object = model()
         form.populate_obj(self.object)
         session.add(self.object)
+        # Do a flush to ensure we get the primary key back
+        session.flush()
         return super(ModelFormMixin, self).form_valid(form)
 
 

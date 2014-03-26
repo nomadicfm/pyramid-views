@@ -9,9 +9,11 @@ from unittest import expectedFailure
 # from django.test.client import RequestFactory
 # from django.views.generic.base import View
 # from django.views.generic.edit import FormMixin, ModelFormMixin, CreateView
+import unittest
 from pyramid.testing import DummyRequest
 from webob.multidict import MultiDict
 from wtforms_alchemy import ModelForm
+from pyramid_views.utils import ImproperlyConfigured
 
 from pyramid_views.views.base import View
 from pyramid_views.views.edit import FormMixin, ModelFormMixin, CreateView
@@ -19,6 +21,7 @@ from pyramid_views.views.edit import FormMixin, ModelFormMixin, CreateView
 from . import views
 from .models import Artist, Author
 from tests.base import BaseTest, session
+from tests.forms import AuthorForm
 
 
 class FormMixinTests(BaseTest):
@@ -102,54 +105,72 @@ class CreateViewTests(BaseTest):
         self.assertEqual(session.query(Author).count(), 0)
 
     def test_create_with_object_url(self):
-        res = self.client.post('/edit/artists/create/',
-                        {'name': 'Rene Magritte'})
+        view = views.ArtistCreate.as_view()
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Rene Magritte'})
+        ))
         self.assertEqual(res.status_code, 302)
-        artist = Artist.objects.get(name='Rene Magritte')
-        self.assertRedirects(res, 'http://testserver/detail/artist/%d/' % artist.pk)
-        self.assertQuerysetEqual(Artist.objects.all(), ['<Artist: Rene Magritte>'])
+        artist = session.query(Artist).filter(Artist.name=='Rene Magritte').one()
+        self.assertRedirects(res, '/detail/artist/%d/' % artist.id)
+        self.assertQuerysetEqual(session.query(Artist).all(), ['<Artist: Rene Magritte>'])
 
     def test_create_with_redirect(self):
-        res = self.client.post('/edit/authors/create/redirect/',
-                            {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        view = views.NaiveAuthorCreate.as_view(success_url='/edit/authors/create/')
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/edit/authors/create/')
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
+        self.assertRedirects(res, '/edit/authors/create/')
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe>'])
 
     def test_create_with_interpolated_redirect(self):
-        res = self.client.post('/edit/authors/create/interpolate_redirect/',
-                            {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
+        view = views.NaiveAuthorCreate.as_view(success_url='/edit/author/%(id)d/update/')
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe>'])
         self.assertEqual(res.status_code, 302)
-        pk = Author.objects.all()[0].pk
-        self.assertRedirects(res, 'http://testserver/edit/author/%d/update/' % pk)
+        id = session.query(Author).all()[0].id
+        self.assertRedirects(res, '/edit/author/%d/update/' % id)
 
     def test_create_with_special_properties(self):
-        res = self.client.get('/edit/authors/create/special/')
+        view = views.SpecializedAuthorCreate.as_view()
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertIsInstance(res.context['form'], views.AuthorForm)
+        self.assertIsInstance(res.context['form'], AuthorForm)
         self.assertFalse('object' in res.context)
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/form.html')
 
-        res = self.client.post('/edit/authors/create/special/',
-                            {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
         self.assertEqual(res.status_code, 302)
-        obj = Author.objects.get(slug='randall-munroe')
-        self.assertRedirects(res, reverse('author_detail', kwargs={'pk': obj.pk}))
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
+        obj = session.query(Author).filter(Author.slug=='randall-munroe').one()
+        self.assertRedirects(res, '/detail/author/%s/' % obj.id)
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe>'])
 
     def test_create_without_redirect(self):
-        try:
-            self.client.post('/edit/authors/create/naive/',
-                {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-            self.fail('Should raise exception -- No redirect URL provided, and no get_absolute_url provided')
-        except ImproperlyConfigured:
-            pass
+        view = views.NaiveAuthorCreate.as_view()
+        request = DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        )
+        # Should raise exception -- No redirect URL provided, and no get_absolute_url provided
+        self.assertRaises(ImproperlyConfigured, view, request)
 
+    @unittest.skip('login_required() decorator is part of Django, so skipping this feature for now')
     def test_create_restricted(self):
-        res = self.client.post('/edit/authors/create/restricted/',
-            {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        view = views.AuthorCreateRestricted.as_view()
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
+
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/accounts/login/?next=/edit/authors/create/restricted/')
 
@@ -158,18 +179,21 @@ class CreateViewTests(BaseTest):
         class MyCreateView(CreateView):
             model = Author
             fields = ['name']
-
-        self.assertEqual(list(MyCreateView().get_form_class().base_fields),
-                         ['name'])
+        form_class = MyCreateView().get_form_class()
+        fields = [field.name for field in form_class()]
+        self.assertEqual(fields, ['name'])
 
     def test_create_view_all_fields(self):
         class MyCreateView(CreateView):
             model = Author
-            fields = '__all__'
+            # Whereas in Django one uses '__all__', wtforms_alchemy
+            # supports a None value and intelligently determining fields to use
+            # fields = '__all__'
+        form_class = MyCreateView().get_form_class()
+        fields = [field.name for field in form_class()]
+        self.assertEqual(fields, ['name', 'slug'])
 
-        self.assertEqual(list(MyCreateView().get_form_class().base_fields),
-                         ['name', 'slug'])
-
+    @unittest.skip('Omitting the "fields" attribute is actually supported')
     def test_create_view_without_explicit_fields(self):
         class MyCreateView(CreateView):
             model = Author
@@ -202,7 +226,7 @@ class UpdateViewTests(BaseTest):
                         {'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'})
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (xkcd)>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (xkcd)>'])
 
     @expectedFailure
     def test_update_put(self):
@@ -222,7 +246,7 @@ class UpdateViewTests(BaseTest):
         # See also #12635
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (author of xkcd)>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
 
     def test_update_invalid(self):
         a = Author.objects.create(
@@ -234,7 +258,7 @@ class UpdateViewTests(BaseTest):
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
         self.assertEqual(len(res.context['form'].errors), 1)
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe>'])
 
     def test_update_with_object_url(self):
         a = Artist.objects.create(name='Rene Magritte')
@@ -242,7 +266,7 @@ class UpdateViewTests(BaseTest):
                         {'name': 'Rene Magritte'})
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/detail/artist/%d/' % a.pk)
-        self.assertQuerysetEqual(Artist.objects.all(), ['<Artist: Rene Magritte>'])
+        self.assertQuerysetEqual(session.query(Artist).all(), ['<Artist: Rene Magritte>'])
 
     def test_update_with_redirect(self):
         a = Author.objects.create(
@@ -253,7 +277,7 @@ class UpdateViewTests(BaseTest):
                         {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/edit/authors/create/')
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (author of xkcd)>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
 
     def test_update_with_interpolated_redirect(self):
         a = Author.objects.create(
@@ -262,9 +286,9 @@ class UpdateViewTests(BaseTest):
         )
         res = self.client.post('/edit/author/%d/update/interpolate_redirect/' % a.pk,
                         {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (author of xkcd)>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
         self.assertEqual(res.status_code, 302)
-        pk = Author.objects.all()[0].pk
+        pk = session.query(Author).all()[0].pk
         self.assertRedirects(res, 'http://testserver/edit/author/%d/update/' % pk)
 
     def test_update_with_special_properties(self):
@@ -284,7 +308,7 @@ class UpdateViewTests(BaseTest):
                         {'name': 'Randall Munroe (author of xkcd)', 'slug': 'randall-munroe'})
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/detail/author/%d/' % a.pk)
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (author of xkcd)>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (author of xkcd)>'])
 
     def test_update_without_redirect(self):
         a = Author.objects.create(
@@ -316,7 +340,7 @@ class UpdateViewTests(BaseTest):
                         {'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'})
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (xkcd)>'])
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe (xkcd)>'])
 
 
 class DeleteViewTests(BaseTest):
@@ -334,7 +358,7 @@ class DeleteViewTests(BaseTest):
         res = self.client.post('/edit/author/%d/delete/' % a.pk)
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), [])
+        self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_by_delete(self):
         # Deletion with browser compatible DELETE method
@@ -342,21 +366,21 @@ class DeleteViewTests(BaseTest):
         res = self.client.delete('/edit/author/%d/delete/' % a.pk)
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), [])
+        self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_with_redirect(self):
         a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
         res = self.client.post('/edit/author/%d/delete/redirect/' % a.pk)
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/edit/authors/create/')
-        self.assertQuerysetEqual(Author.objects.all(), [])
+        self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_with_interpolated_redirect(self):
         a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
         res = self.client.post('/edit/author/%d/delete/interpolate_redirect/' % a.pk)
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/edit/authors/create/?deleted=%d' % a.pk)
-        self.assertQuerysetEqual(Author.objects.all(), [])
+        self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_with_special_properties(self):
         a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
@@ -370,7 +394,7 @@ class DeleteViewTests(BaseTest):
         res = self.client.post('/edit/author/%d/delete/special/' % a.pk)
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), [])
+        self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_without_redirect(self):
         a = Author.objects.create(

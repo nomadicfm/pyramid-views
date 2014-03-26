@@ -15,7 +15,7 @@ from pyramid_views.views import detail
 from pyramid_views.views.detail import DetailView
 from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin
 from pyramid_views.views.list import MultipleObjectMixin, ListView
-from tests.forms import ContactForm
+from tests.forms import ContactForm, AuthorForm
 
 
 class CustomTemplateView(TemplateView):
@@ -97,7 +97,7 @@ class ArtistCreate(CreateView):
 
 
 class NaiveAuthorCreate(CreateView):
-    queryset = Query(Author)
+    query = Query(Author)
     fields = '__all__'
 
 
@@ -113,17 +113,17 @@ class AuthorCreate(CreateView):
     model = Author
     success_url = '/list/authors/'
 
-#
-# class SpecializedAuthorCreate(generic.CreateView):
-#     model = Author
-#     form_class = AuthorForm
-#     template_name = 'form.html'
-#     context_object_name = 'thingy'
-#
-#     def get_success_url(self):
-#         return reverse('author_detail', args=[self.object.id])
-#
-#
+
+class SpecializedAuthorCreate(CreateView):
+    model = Author
+    form_class = AuthorForm
+    template_name = 'tests:templates/form.html'
+    context_object_name = 'thingy'
+
+    def get_success_url(self):
+        return '/detail/author/%d/' % self.object.id
+
+
 # class AuthorCreateRestricted(AuthorCreate):
 #     post = method_decorator(login_required)(AuthorCreate.post)
 #
