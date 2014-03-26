@@ -22,14 +22,14 @@ class ListViewTests(BaseTest):
     def test_items(self):
         # res = self.client.get('/list/dict/')
         view = views.DictList.as_view()
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/list.html')
         self.assertEqual(res.context['object_list'][0]['first'], 'John')
 
     def test_query(self):
         view = views.AuthorList.as_view()
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
@@ -42,7 +42,7 @@ class ListViewTests(BaseTest):
     def test_paginated_query(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
         self.assertEqual(len(res.context['object_list']), 30)
@@ -57,7 +57,7 @@ class ListViewTests(BaseTest):
         # Test that short datasets ALSO result in a paginated view.
         self.author()
         view = views.AuthorList.as_view(paginate_by=30)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
@@ -69,7 +69,7 @@ class ListViewTests(BaseTest):
     def test_paginated_get_page_by_query_string(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30)
-        res = view(DummyRequest(path='/foo', method='GET', params={'page': '2'}))
+        res = view(DummyRequest(params={'page': '2'}))
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
         self.assertEqual(len(res.context['object_list']), 30)
@@ -80,7 +80,7 @@ class ListViewTests(BaseTest):
     def test_paginated_get_last_page_by_query_string(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30)
-        res = view(DummyRequest(path='/foo', method='GET', params={'page': 'last'}))
+        res = view(DummyRequest(params={'page': 'last'}))
         self.assertEqual(res.status_code, 200)
         self.assertEqual(len(res.context['object_list']), 10)
         self.assertIs(res.context['author_list'], res.context['object_list'])
@@ -90,7 +90,7 @@ class ListViewTests(BaseTest):
     def test_paginated_get_page_by_urlvar(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30)
-        res = view(DummyRequest(path='/foo', method='GET'), page=3)
+        res = view(DummyRequest(), page=3)
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
         self.assertEqual(len(res.context['object_list']), 30)
@@ -101,17 +101,17 @@ class ListViewTests(BaseTest):
     def test_paginated_page_out_of_range(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30)
-        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET'), page=42)
+        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(), page=42)
 
     def test_paginated_invalid_page(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30)
-        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET', params={'page': 'frog'}))
+        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(params={'page': 'frog'}))
 
     def test_paginated_custom_paginator_class(self):
         self._make_authors(7)
         view = views.AuthorList.as_view(paginate_by=5, paginator_class=views.CustomPaginator)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['paginator'].num_pages, 1)
         # Custom pagination allows for 2 orphans on a page size of 5
@@ -120,7 +120,7 @@ class ListViewTests(BaseTest):
     def test_paginated_custom_page_kwarg(self):
         self._make_authors(100)
         view = views.AuthorList.as_view(paginate_by=30, page_kwarg='pagina')
-        res = view(DummyRequest(path='/foo', method='GET', params={'pagina': '2'}))
+        res = view(DummyRequest(params={'pagina': '2'}))
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
         self.assertEqual(len(res.context['object_list']), 30)
@@ -131,7 +131,7 @@ class ListViewTests(BaseTest):
     def test_paginated_custom_paginator_constructor(self):
         self._make_authors(7)
         view = views.AuthorListCustomPaginator.as_view()
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         # Custom pagination allows for 2 orphans on a page size of 5
         self.assertEqual(len(res.context['object_list']), 7)
@@ -140,20 +140,20 @@ class ListViewTests(BaseTest):
         self.assertEqual(session.query(Author).count(), 0)
         self._make_authors(92)
         view = views.AuthorList.as_view(paginate_by=30, paginate_orphans=2)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['page_obj'].number, 1)
-        res = view(DummyRequest(path='/foo', method='GET', params={'page': 'last'}))
+        res = view(DummyRequest(params={'page': 'last'}))
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['page_obj'].number, 3)
-        res = view(DummyRequest(path='/foo', method='GET', params={'page': '3'}))
+        res = view(DummyRequest(params={'page': '3'}))
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['page_obj'].number, 3)
-        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET', params={'page': '4'}))
+        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(params={'page': '4'}))
 
     def test_paginated_non_query(self):
         view = views.DictList.as_view(paginate_by=1)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(len(res.context['object_list']), 1)
@@ -161,7 +161,7 @@ class ListViewTests(BaseTest):
     def test_verbose_name(self):
         self.author()
         view = views.ArtistList.as_view()
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/list.html')
         self.assertEqual(list(res.context['object_list']), list(session.query(Artist).all()))
@@ -173,14 +173,14 @@ class ListViewTests(BaseTest):
     def test_allow_empty_false(self):
         self.artist()
         view = views.ArtistList.as_view(allow_empty=False)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         session.query(Artist).delete()
-        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET'))
+        self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest())
 
     def test_template_name(self):
         view = views.AuthorList.as_view(template_name='tests:templates/list.html')
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
@@ -188,7 +188,7 @@ class ListViewTests(BaseTest):
 
     def test_template_name_suffix(self):
         view = views.AuthorList.as_view(template_name_suffix='_objects')
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
@@ -196,7 +196,7 @@ class ListViewTests(BaseTest):
 
     def test_context_object_name(self):
         view = views.AuthorList.as_view(context_object_name='author_list')
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
         self.assertNotIn('authors', res.context)
@@ -205,7 +205,7 @@ class ListViewTests(BaseTest):
 
     def test_duplicate_context_object_name(self):
         view = views.AuthorList.as_view(context_object_name='object_list')
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
         self.assertNotIn('authors', res.context)
@@ -214,12 +214,12 @@ class ListViewTests(BaseTest):
 
     def test_missing_items(self):
         view = views.AuthorList.as_view(query=None)
-        self.assertRaises(ImproperlyConfigured, view, DummyRequest(path='/foo', method='GET'))
+        self.assertRaises(ImproperlyConfigured, view, DummyRequest())
 
     def test_paginate_by_no_allow_empty(self):
         self.author()
         view = views.AuthorList.as_view(allow_empty=False, paginate_by=2)
-        res = view(DummyRequest(path='/foo', method='GET'))
+        res = view(DummyRequest())
         self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
@@ -237,11 +237,11 @@ class ListViewTests(BaseTest):
         # 1 query for authors
         # with self.assertNumQueries(1):
         #     view = views.AuthorList.as_view(allow_empty=False)
-        #     view(DummyRequest(path='/foo', method='GET'))
+        #     view(DummyRequest())
         # same as above + 1 query to test if authors exist + 1 query for pagination
         with self.assertNumQueries(3):
             view = views.AuthorList.as_view(allow_empty=False, paginate_by=2)
-            view(DummyRequest(path='/foo', method='GET'))
+            view(DummyRequest())
 
     def _make_authors(self, n):
         for i in range(n):
