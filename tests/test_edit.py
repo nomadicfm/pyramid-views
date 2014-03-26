@@ -18,7 +18,7 @@ from pyramid_views.views.edit import FormMixin, ModelFormMixin, CreateView
 
 from . import views
 from .models import Artist, Author
-from tests.base import BaseTest
+from tests.base import BaseTest, session
 
 
 class FormMixinTests(BaseTest):
@@ -87,16 +87,19 @@ class CreateViewTests(BaseTest):
             params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
         ))
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
-        self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
+        self.assertRedirects(res, '/list/authors/')
+        self.assertQuerysetEqual(session.query(Author).all(), ['<Author: Randall Munroe>'])
 
     def test_create_invalid(self):
-        res = self.client.post('/edit/authors/create/',
-                        {'name': 'A' * 101, 'slug': 'randall-munroe'})
+        view = views.AuthorCreate.as_view()
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'A' * 101, 'slug': 'randall-munroe'})
+        ))
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
         self.assertEqual(len(res.context['form'].errors), 1)
-        self.assertEqual(Author.objects.count(), 0)
+        self.assertEqual(session.query(Author).count(), 0)
 
     def test_create_with_object_url(self):
         res = self.client.post('/edit/artists/create/',

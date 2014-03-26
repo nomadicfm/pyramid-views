@@ -60,7 +60,7 @@ class Author(Base):
     slug = Column(Unicode(50))
 
     def __str__(self):
-        return self.name
+        return u'<Author: %s>' % self.name
 
 
 class Book(Base):

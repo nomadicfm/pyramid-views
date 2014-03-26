@@ -112,7 +112,6 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 class AuthorCreate(CreateView):
     model = Author
     success_url = '/list/authors/'
-    fields = '__all__'
 
 #
 # class SpecializedAuthorCreate(generic.CreateView):

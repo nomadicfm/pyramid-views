@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import unittest
 from pyramid import testing
 from pyramid.config import Configurator
+import six
 from sqlalchemy import MetaData, create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -66,7 +67,7 @@ class BaseTest(unittest.TestCase):
                          "Invalid redirect status code %s, expected %s" % (res.status_code, status_code))
         self.assertEqual(res.headers['Location'], url)
 
-    def assertQuerysetEqual(self, qs, values, transform=repr, ordered=True):
+    def assertQuerysetEqual(self, qs, values, transform=str, ordered=True):
         items = six.moves.map(transform, qs)
         if not ordered:
             return self.assertEqual(set(items), set(values))
