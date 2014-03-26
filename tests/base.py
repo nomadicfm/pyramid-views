@@ -61,6 +61,23 @@ class BaseTest(unittest.TestCase):
     def assertTemplateUsed(self, res, template_name):
         self.assertIn(template_name, res.template_names)
 
+    def assertRedirects(self, res, url, status_code=302):
+        self.assertEqual(res.status_code, status_code,
+                         "Invalid redirect status code %s, expected %s" % (res.status_code, status_code))
+        self.assertEqual(res.headers['Location'], url)
+
+    def assertQuerysetEqual(self, qs, values, transform=repr, ordered=True):
+        items = six.moves.map(transform, qs)
+        if not ordered:
+            return self.assertEqual(set(items), set(values))
+        values = list(values)
+        # For example qs.iterator() could be passed as qs, but it does not
+        # have 'ordered' attribute.
+        if len(values) > 1 and hasattr(qs, 'ordered') and not qs.ordered:
+            raise ValueError("Trying to compare non-ordered queryset "
+                             "against more than one ordered values")
+        return self.assertEqual(list(items), values)
+
     def artist(self, name='Rene Magritte'):
         from .models import Artist
         artist = Artist(name=name)

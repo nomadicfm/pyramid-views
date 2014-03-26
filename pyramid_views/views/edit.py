@@ -1,10 +1,14 @@
-from django.core.exceptions import ImproperlyConfigured
-from django.forms import models as model_forms
-from django.http import HttpResponseRedirect
-from django.utils.encoding import force_text
-from django.views.generic.base import TemplateResponseMixin, ContextMixin, View
-from django.views.generic.detail import (SingleObjectMixin,
-                        SingleObjectTemplateResponseMixin, BaseDetailView)
+# from django.core.exceptions import ImproperlyConfigured
+# from django.forms import models as model_forms
+# from django.http import HttpResponseRedirect
+# from django.utils.encoding import force_text
+from pyramid import httpexceptions
+import wtforms_alchemy
+from wtforms_alchemy import ModelForm
+from pyramid_views.utils import ImproperlyConfigured, get_model_from_obj
+from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
+from pyramid_views.views.detail import (SingleObjectMixin,
+                                        SingleObjectTemplateResponseMixin, BaseDetailView)
 
 
 class FormMixin(ContextMixin):
@@ -46,14 +50,16 @@ class FormMixin(ContextMixin):
         Returns the keyword arguments for instantiating the form.
         """
         kwargs = {
-            'initial': self.get_initial(),
-            'prefix': self.get_prefix(),
+            'data': self.get_initial(),
+            'prefix': self.get_prefix() or '',
         }
 
         if self.request.method in ('POST', 'PUT'):
+            # Note that, unlike Django, Pyramid does not
+            # distinguish file data from post data (Django
+            # has both POST and FILES, Pyramid has just POST)
             kwargs.update({
-                'data': self.request.POST,
-                'files': self.request.FILES,
+                'formdata': self.request.POST,
             })
         return kwargs
 
@@ -63,7 +69,7 @@ class FormMixin(ContextMixin):
         """
         if self.success_url:
             # Forcing possible reverse_lazy evaluation
-            url = force_text(self.success_url)
+            url = self.success_url
         else:
             raise ImproperlyConfigured(
                 "No URL to redirect to. Provide a success_url.")
@@ -73,7 +79,7 @@ class FormMixin(ContextMixin):
         """
         If the form is valid, redirect to the supplied URL.
         """
-        return HttpResponseRedirect(self.get_success_url())
+        return httpexceptions.HTTPFound(self.get_success_url())
 
     def form_invalid(self, form):
         """
@@ -106,7 +112,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             else:
                 # Try to get a queryset and extract the model class
                 # from that
-                model = self.get_query().model
+                model = get_model_from_obj(self.get_query())
 
             if self.fields is None:
                 raise ImproperlyConfigured(
@@ -114,7 +120,9 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
                     "the 'fields' attribute is prohibited." % self.__class__.__name__
                 )
 
-            return model_forms.modelform_factory(model, fields=self.fields)
+            model_form = wtforms_alchemy.model_form_factory(ModelForm, only=self.fields)
+            model_form.Meta.model = model
+            return model_form
 
     def get_form_kwargs(self):
         """
@@ -167,7 +175,7 @@ class ProcessFormView(View):
         """
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        if form.is_valid():
+        if form.validate():
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -250,7 +258,7 @@ class DeletionMixin(object):
         self.object = self.get_object()
         success_url = self.get_success_url()
         self.object.delete()
-        return HttpResponseRedirect(success_url)
+        return httpexceptions.HTTPFound(success_url)
 
     # Add support for browsers which only accept GET and POST for now.
     def post(self, request, *args, **kwargs):

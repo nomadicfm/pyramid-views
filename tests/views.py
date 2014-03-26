@@ -13,7 +13,9 @@ from pyramid_views.paginator import Paginator
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
 from pyramid_views.views.detail import DetailView
+from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin
 from pyramid_views.views.list import MultipleObjectMixin, ListView
+from tests.forms import ContactForm
 
 
 class CustomTemplateView(TemplateView):
@@ -81,37 +83,37 @@ class AuthorListCustomPaginator(AuthorList):
             page_size,
             orphans=2,
             allow_empty_first_page=allow_empty_first_page)
-#
-#
-# class ContactView(generic.FormView):
-#     form_class = ContactForm
-#     success_url = reverse_lazy('authors_list')
-#     template_name = 'form.html'
-#
-#
-# class ArtistCreate(generic.CreateView):
-#     model = Artist
-#     fields = '__all__'
-#
-#
-# class NaiveAuthorCreate(generic.CreateView):
-#     queryset = Author.objects.all()
-#     fields = '__all__'
-#
-#
+
+
+class ContactView(FormView):
+    form_class = ContactForm
+    success_url = '/list/authors/'
+    template_name = 'tests:templates/form.html'
+
+
+class ArtistCreate(CreateView):
+    model = Artist
+    fields = '__all__'
+
+
+class NaiveAuthorCreate(CreateView):
+    queryset = Query(Author)
+    fields = '__all__'
+
+
 class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, View):
     # we don't define the usual template_name here
 
     def __init__(self):
         # Dummy object, but attr is required by get_template_name()
         self.object = None
-#
-#
-# class AuthorCreate(generic.CreateView):
-#     model = Author
-#     success_url = '/list/authors/'
-#     fields = '__all__'
-#
+
+
+class AuthorCreate(CreateView):
+    model = Author
+    success_url = '/list/authors/'
+    fields = '__all__'
+
 #
 # class SpecializedAuthorCreate(generic.CreateView):
 #     model = Author
@@ -212,12 +214,12 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 #     pass
 #
 #
-# class AuthorGetQuerySetFormView(generic.edit.ModelFormMixin):
-#     fields = '__all__'
-#
-#     def get_query(self):
-#         return Author.objects.all()
-#
+class AuthorGetQuerySetFormView(ModelFormMixin):
+    fields = '__all__'
+
+    def get_query(self):
+        return Query(Author)
+
 #
 # class BookDetailGetObjectCustomQueryset(BookDetail):
 #     def get_object(self, queryset=None):

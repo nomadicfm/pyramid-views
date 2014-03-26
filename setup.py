@@ -26,5 +26,7 @@ setup(
     install_requires=[
         'pyramid',
         'six',
+        'wtforms',
+        'wtforms-alchemy',
     ],
 )

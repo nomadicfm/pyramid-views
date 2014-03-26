@@ -2,19 +2,26 @@ from __future__ import unicode_literals
 
 from unittest import expectedFailure
 
-from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import reverse
-from django import forms
-from django.test import TestCase
-from django.test.client import RequestFactory
-from django.views.generic.base import View
-from django.views.generic.edit import FormMixin, ModelFormMixin, CreateView
+# from django.core.exceptions import ImproperlyConfigured
+# from django.core.urlresolvers import reverse
+# from django import forms
+# from django.test import TestCase
+# from django.test.client import RequestFactory
+# from django.views.generic.base import View
+# from django.views.generic.edit import FormMixin, ModelFormMixin, CreateView
+from pyramid.testing import DummyRequest
+from webob.multidict import MultiDict
+from wtforms_alchemy import ModelForm
+
+from pyramid_views.views.base import View
+from pyramid_views.views.edit import FormMixin, ModelFormMixin, CreateView
 
 from . import views
 from .models import Artist, Author
+from tests.base import BaseTest
 
 
-class FormMixinTests(TestCase):
+class FormMixinTests(BaseTest):
     def test_initial_data(self):
         """ Test instance independence of initial data dict (see #16138) """
         initial_1 = FormMixin().get_initial()
@@ -26,8 +33,7 @@ class FormMixinTests(TestCase):
         """ Test prefix can be set (see #18872) """
         test_string = 'test'
 
-        rf = RequestFactory()
-        get_request = rf.get('/')
+        get_request = DummyRequest()
 
         class TestFormMixin(FormMixin):
             request = get_request
@@ -41,40 +47,45 @@ class FormMixinTests(TestCase):
         self.assertEqual(test_string, set_kwargs.get('prefix'))
 
 
-class BasicFormTests(TestCase):
+class BasicFormTests(BaseTest):
     urls = 'generic_views.urls'
 
     def test_post_data(self):
-        res = self.client.post('/contact/', {'name': "Me", 'message': "Hello"})
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        view = views.ContactView.as_view()
+        res = view(DummyRequest(method='POST', params=MultiDict(name='Me', message='Hello')))
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.headers['Location'], '/list/authors/')
 
 
-class ModelFormMixinTests(TestCase):
+class ModelFormMixinTests(BaseTest):
     def test_get_form(self):
         form_class = views.AuthorGetQuerySetFormView().get_form_class()
-        self.assertEqual(form_class._meta.model, Author)
+        self.assertEqual(form_class.Meta.model, Author)
 
     def test_get_form_checks_for_object(self):
         mixin = ModelFormMixin()
-        mixin.request = RequestFactory().get('/')
-        self.assertEqual({'initial': {}, 'prefix': None},
+        mixin.request = DummyRequest()
+        self.assertEqual({'data': {}, 'prefix': ''},
                          mixin.get_form_kwargs())
 
 
-class CreateViewTests(TestCase):
+class CreateViewTests(BaseTest):
     urls = 'generic_views.urls'
 
     def test_create(self):
-        res = self.client.get('/edit/authors/create/')
+        view = views.AuthorCreate.as_view()
+        res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertIsInstance(res.context['form'], forms.ModelForm)
+        self.assertIsInstance(res.context['form'], ModelForm)
         self.assertIsInstance(res.context['view'], View)
         self.assertFalse('object' in res.context)
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
 
-        res = self.client.post('/edit/authors/create/',
-                        {'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
         self.assertEqual(res.status_code, 302)
         self.assertRedirects(res, 'http://testserver/list/authors/')
         self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe>'])
@@ -168,7 +179,7 @@ class CreateViewTests(TestCase):
             MyCreateView().get_form_class()
 
 
-class UpdateViewTests(TestCase):
+class UpdateViewTests(BaseTest):
     urls = 'generic_views.urls'
 
     def test_update_post(self):
@@ -305,7 +316,7 @@ class UpdateViewTests(TestCase):
         self.assertQuerysetEqual(Author.objects.all(), ['<Author: Randall Munroe (xkcd)>'])
 
 
-class DeleteViewTests(TestCase):
+class DeleteViewTests(BaseTest):
     urls = 'generic_views.urls'
 
     def test_delete_by_post(self):
