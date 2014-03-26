@@ -111,7 +111,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
                 # the class of that object
                 model = self.object.__class__
             else:
-                # Try to get a queryset and extract the model class
+                # Try to get a query and extract the model class
                 # from that
                 model = get_model_from_obj(self.get_query())
 

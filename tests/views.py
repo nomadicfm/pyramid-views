@@ -50,7 +50,7 @@ class PageDetail(DetailView):
 
 class DictList(ListView):
     """A ListView that doesn't use a model."""
-    queryset = [
+    query = [
         {'first': 'John', 'last': 'Lennon'},
         {'first': 'Yoko', 'last': 'Ono'}
     ]
@@ -59,17 +59,17 @@ class DictList(ListView):
 
 class ArtistList(ListView):
     template_name = 'tests:templates/list.html'
-    queryset = Query(Artist)
+    query = Query(Artist)
 
 
 class AuthorList(ListView):
-    queryset = Query(Author)
+    query = Query(Author)
 
 
 class CustomPaginator(Paginator):
-    def __init__(self, queryset, page_size, orphans=0, allow_empty_first_page=True):
+    def __init__(self, query, page_size, orphans=0, allow_empty_first_page=True):
         super(CustomPaginator, self).__init__(
-            queryset,
+            query,
             page_size,
             orphans=2,
             allow_empty_first_page=allow_empty_first_page)
@@ -78,9 +78,9 @@ class CustomPaginator(Paginator):
 class AuthorListCustomPaginator(AuthorList):
     paginate_by = 5
 
-    def get_paginator(self, queryset, page_size, orphans=0, allow_empty_first_page=True):
+    def get_paginator(self, query, page_size, orphans=0, allow_empty_first_page=True):
         return super(AuthorListCustomPaginator, self).get_paginator(
-            queryset,
+            query,
             page_size,
             orphans=2,
             allow_empty_first_page=allow_empty_first_page)
@@ -158,7 +158,7 @@ class SpecializedAuthorUpdate(UpdateView):
 
 
 class NaiveAuthorDelete(DeleteView):
-    queryset = Query(Author)
+    query = Query(Author)
 
 
 class AuthorDelete(DeleteView):
@@ -176,7 +176,7 @@ class SpecializedAuthorDelete(DeleteView):
 
 #
 # class BookConfig(object):
-#     queryset = Book.objects.all()
+#     query = Book.objects.all()
 #     date_field = 'pubdate'
 #
 #
@@ -208,20 +208,20 @@ class SpecializedAuthorDelete(DeleteView):
 #     pass
 #
 #
-class AuthorGetQuerySetFormView(ModelFormMixin):
+class AuthorGetQueryFormView(ModelFormMixin):
 
     def get_query(self):
         return Query(Author)
 
 #
 # class BookDetailGetObjectCustomQueryset(BookDetail):
-#     def get_object(self, queryset=None):
+#     def get_object(self, query=None):
 #         return super(BookDetailGetObjectCustomQueryset, self).get_object(
-#             queryset=Book.objects.filter(pk=2))
+#             query=Book.objects.filter(pk=2))
 #
 #
 class CustomMultipleObjectMixinView(MultipleObjectMixin, View):
-    queryset = [
+    query = [
         {'name': 'John'},
         {'name': 'Yoko'},
     ]
@@ -298,7 +298,7 @@ class NonModelDetail(DetailView):
     template_name = 'tests:templates/detail.html'
     model = NonModel
 
-    def get_object(self, queryset=None):
+    def get_object(self, query=None):
         return NonModel()
 
 

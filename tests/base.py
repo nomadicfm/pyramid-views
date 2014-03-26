@@ -75,7 +75,7 @@ class BaseTest(unittest.TestCase):
         # For example qs.iterator() could be passed as qs, but it does not
         # have 'ordered' attribute.
         if len(values) > 1 and hasattr(qs, 'ordered') and not qs.ordered:
-            raise ValueError("Trying to compare non-ordered queryset "
+            raise ValueError("Trying to compare non-ordered query "
                              "against more than one ordered values")
         return self.assertEqual(list(items), values)
 

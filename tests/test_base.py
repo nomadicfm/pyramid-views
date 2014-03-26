@@ -475,21 +475,21 @@ class GetContextDataTest(unittest.TestCase):
 class UseMultipleObjectMixinTest(unittest.TestCase):
     # rf = RequestFactory()
 
-    def test_use_queryset_from_view(self):
+    def test_use_query_from_view(self):
         test_view = views.CustomMultipleObjectMixinView()
         test_view.get(DummyRequest(path='/', method='POST'))
-        # Don't pass queryset as argument
+        # Don't pass query as argument
         context = test_view.get_context_data()
-        self.assertEqual(context['object_list'], test_view.queryset)
+        self.assertEqual(context['object_list'], test_view.query)
 
-    def test_overwrite_queryset(self):
+    def test_overwrite_query(self):
         test_view = views.CustomMultipleObjectMixinView()
         test_view.get(DummyRequest(path='/', method='POST'))
-        queryset = [{'name': 'Lennon'}, {'name': 'Ono'}]
-        self.assertNotEqual(test_view.queryset, queryset)
-        # Overwrite the view's queryset with queryset from kwarg
-        context = test_view.get_context_data(object_list=queryset)
-        self.assertEqual(context['object_list'], queryset)
+        query = [{'name': 'Lennon'}, {'name': 'Ono'}]
+        self.assertNotEqual(test_view.query, query)
+        # Overwrite the view's query with query from kwarg
+        context = test_view.get_context_data(object_list=query)
+        self.assertEqual(context['object_list'], query)
 
 
 class SingleObjectTemplateResponseMixinTest(unittest.TestCase):

@@ -39,7 +39,7 @@ class DetailViewTest(BaseTest):
 
     def test_detail_object_does_not_exist(self):
         self.author()
-        # ObjectDoesNotExistDetail uses get_query() to return an empty queryset
+        # ObjectDoesNotExistDetail uses get_query() to return an empty query
         view = views.ObjectDoesNotExistDetail.as_view()
         self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest(path='/foo', method='GET'), pk=1)
 

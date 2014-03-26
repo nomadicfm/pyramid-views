@@ -63,7 +63,7 @@ class BasicFormTests(BaseTest):
 
 class ModelFormMixinTests(BaseTest):
     def test_get_form(self):
-        form_class = views.AuthorGetQuerySetFormView().get_form_class()
+        form_class = views.AuthorGetQueryFormView().get_form_class()
         self.assertEqual(form_class.Meta.model, Author)
 
     def test_get_form_checks_for_object(self):

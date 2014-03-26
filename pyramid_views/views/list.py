@@ -18,7 +18,7 @@ class MultipleObjectMixin(ContextMixin):
     A mixin for views manipulating multiple objects.
     """
     allow_empty = True
-    queryset = None
+    query = None
     model = None
     paginate_by = None
     paginate_orphans = 0
@@ -33,14 +33,14 @@ class MultipleObjectMixin(ContextMixin):
         The return value must be an iterable and may be an instance of
         `QuerySet` in which case `QuerySet` specific behavior will be enabled.
         """
-        if self.queryset is not None:
-            queryset = self.queryset
+        if self.query is not None:
+            query = self.query
         elif self.model is not None:
-            queryset = Query(self.model)
+            query = Query(self.model)
         else:
             raise ImproperlyConfigured(
                 "%(cls)s is missing a QuerySet. Define "
-                "%(cls)s.model, %(cls)s.queryset, or override "
+                "%(cls)s.model, %(cls)s.query, or override "
                 "%(cls)s.get_query()." % {
                     'cls': self.__class__.__name__
                 }
@@ -48,17 +48,17 @@ class MultipleObjectMixin(ContextMixin):
 
         # Set the session on the query (there may be a better way of handling this which
         # doesn't involve using a private API)
-        if isinstance(queryset, Query):
-            queryset.session = utils.model_from_query(queryset).session
+        if isinstance(query, Query):
+            query.session = utils.model_from_query(query).session
 
-        return queryset
+        return query
 
-    def paginate_queryset(self, queryset, page_size):
+    def paginate_query(self, query, page_size):
         """
-        Paginate the queryset, if needed.
+        Paginate the query, if needed.
         """
         paginator = self.get_paginator(
-            queryset, page_size, orphans=self.get_paginate_orphans(),
+            query, page_size, orphans=self.get_paginate_orphans(),
             allow_empty_first_page=self.get_allow_empty())
         page_kwarg = self.page_kwarg
         page = self.kwargs.get(page_kwarg) or self.request.GET.get(page_kwarg) or 1
@@ -78,19 +78,19 @@ class MultipleObjectMixin(ContextMixin):
                 'message': str(e)
             })
 
-    def get_paginate_by(self, queryset):
+    def get_paginate_by(self, query):
         """
         Get the number of items to paginate by, or ``None`` for no pagination.
         """
         return self.paginate_by
 
-    def get_paginator(self, queryset, per_page, orphans=0,
+    def get_paginator(self, query, per_page, orphans=0,
                       allow_empty_first_page=True, **kwargs):
         """
         Return an instance of the paginator for this view.
         """
         return self.paginator_class(
-            queryset, per_page, orphans=orphans,
+            query, per_page, orphans=orphans,
             allow_empty_first_page=allow_empty_first_page, **kwargs)
 
     def get_paginate_orphans(self):
@@ -122,26 +122,26 @@ class MultipleObjectMixin(ContextMixin):
         """
         Get the context for this view.
         """
-        queryset = kwargs.pop('object_list', self.object_list)
-        page_size = self.get_paginate_by(queryset)
-        context_object_name = self.get_context_object_name(queryset)
+        query = kwargs.pop('object_list', self.object_list)
+        page_size = self.get_paginate_by(query)
+        context_object_name = self.get_context_object_name(query)
         if page_size:
-            paginator, page, queryset, is_paginated = self.paginate_queryset(queryset, page_size)
+            paginator, page, query, is_paginated = self.paginate_query(query, page_size)
             context = {
                 'paginator': paginator,
                 'page_obj': page,
                 'is_paginated': is_paginated,
-                'object_list': queryset
+                'object_list': query
             }
         else:
             context = {
                 'paginator': None,
                 'page_obj': None,
                 'is_paginated': False,
-                'object_list': queryset
+                'object_list': query
             }
         if context_object_name is not None:
-            context[context_object_name] = queryset
+            context[context_object_name] = query
         context.update(kwargs)
         return super(MultipleObjectMixin, self).get_context_data(**context)
 
@@ -154,9 +154,9 @@ class BaseListView(MultipleObjectMixin, View):
         self.object_list = self.get_query()
         allow_empty = self.get_allow_empty()
         if not allow_empty:
-            # When pagination is enabled and object_list is a queryset,
+            # When pagination is enabled and object_list is a query,
             # it's better to do a cheap query than to load the unpaginated
-            # queryset in memory.
+            # query in memory.
             if (self.get_paginate_by(self.object_list) is not None
                     and hasattr(self.object_list, 'exists')):
                 is_empty = not self.object_list.session.query(self.object_list.exists()).scalar()
@@ -187,7 +187,7 @@ class MultipleObjectTemplateResponseMixin(TemplateResponseMixin):
             # we just start with an empty list.
             names = []
 
-        # If the list is a queryset, we'll invent a template name based on the
+        # If the list is a query, we'll invent a template name based on the
         # app and model name. This name gets put at the end of the template
         # name list so that user-supplied names override the automatically-
         # generated ones.
@@ -204,6 +204,6 @@ class MultipleObjectTemplateResponseMixin(TemplateResponseMixin):
 
 class ListView(MultipleObjectTemplateResponseMixin, BaseListView):
     """
-    Render some list of objects, set by `self.model` or `self.queryset`.
-    `self.queryset` can actually be any iterable of items, not just a queryset.
+    Render some list of objects, set by `self.model` or `self.query`.
+    `self.query` can actually be any iterable of items, not just a query.
     """
