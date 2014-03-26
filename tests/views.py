@@ -13,7 +13,7 @@ from pyramid_views.paginator import Paginator
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
 from pyramid_views.views.detail import DetailView
-from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin, UpdateView
+from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin, UpdateView, DeleteView
 from pyramid_views.views.list import MultipleObjectMixin, ListView
 from tests.base import session
 from tests.forms import ContactForm, AuthorForm
@@ -156,24 +156,24 @@ class SpecializedAuthorUpdate(UpdateView):
     def get_success_url(self):
         return '/detail/author/%d/' % self.object.id
 
-#
-# class NaiveAuthorDelete(generic.DeleteView):
-#     queryset = Author.objects.all()
-#
-#
-# class AuthorDelete(generic.DeleteView):
-#     model = Author
-#     success_url = '/list/authors/'
-#
-#
-# class SpecializedAuthorDelete(generic.DeleteView):
-#     queryset = Author.objects.all()
-#     template_name = 'confirm_delete.html'
-#     context_object_name = 'thingy'
-#
-#     def get_success_url(self):
-#         return reverse('authors_list')
-#
+
+class NaiveAuthorDelete(DeleteView):
+    queryset = Query(Author)
+
+
+class AuthorDelete(DeleteView):
+    model = Author
+    success_url = '/list/authors/'
+
+
+class SpecializedAuthorDelete(DeleteView):
+    query = Query(Author)
+    template_name = 'tests:templates/confirm_delete.html'
+    context_object_name = 'thingy'
+
+    def get_success_url(self):
+        return '/list/authors/'
+
 #
 # class BookConfig(object):
 #     queryset = Book.objects.all()
@@ -209,7 +209,6 @@ class SpecializedAuthorUpdate(UpdateView):
 #
 #
 class AuthorGetQuerySetFormView(ModelFormMixin):
-    fields = '__all__'
 
     def get_query(self):
         return Query(Author)

@@ -265,7 +265,7 @@ class DeletionMixin(object):
         """
         self.object = self.get_object()
         success_url = self.get_success_url()
-        self.object.delete()
+        session.delete(self.object)
         return httpexceptions.HTTPFound(success_url)
 
     # Add support for browsers which only accept GET and POST for now.

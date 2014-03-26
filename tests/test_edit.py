@@ -43,7 +43,7 @@ class FormMixinTests(BaseTest):
             request = get_request
 
         default_kwargs = TestFormMixin().get_form_kwargs()
-        self.assertEqual(None, default_kwargs.get('prefix'))
+        self.assertEqual('', default_kwargs.get('prefix'))
 
         set_mixin = TestFormMixin()
         set_mixin.prefix = test_string
@@ -374,64 +374,66 @@ class UpdateViewTests(BaseTest):
 
 
 class DeleteViewTests(BaseTest):
-    urls = 'generic_views.urls'
 
     def test_delete_by_post(self):
-        a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-        res = self.client.get('/edit/author/%d/delete/' % a.pk)
+        a = self.author(name='Randall Munroe', slug='randall-munroe')
+        view = views.AuthorDelete.as_view()
+        res = view(DummyRequest(), pk=a.id)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
-        self.assertEqual(res.context['author'], Author.objects.get(pk=a.pk))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==a.id).one())
+        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==a.id).one())
         self.assertTemplateUsed(res, 'tests:templates/author_confirm_delete.html')
 
         # Deletion with POST
-        res = self.client.post('/edit/author/%d/delete/' % a.pk)
+        res = view(DummyRequest(method='POST'), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_by_delete(self):
         # Deletion with browser compatible DELETE method
-        a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-        res = self.client.delete('/edit/author/%d/delete/' % a.pk)
+        a = self.author(name='Randall Munroe', slug='randall-munroe')
+        view = views.AuthorDelete.as_view()
+        res = view(DummyRequest(method='DELETE'), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_with_redirect(self):
-        a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-        res = self.client.post('/edit/author/%d/delete/redirect/' % a.pk)
+        a = self.author(name='Randall Munroe', slug='randall-munroe')
+        view = views.AuthorDelete.as_view(success_url='/edit/authors/create/')
+        res = view(DummyRequest(method='POST'), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/edit/authors/create/')
+        self.assertRedirects(res, '/edit/authors/create/')
         self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_with_interpolated_redirect(self):
-        a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-        res = self.client.post('/edit/author/%d/delete/interpolate_redirect/' % a.pk)
+        a = self.author(name='Randall Munroe', slug='randall-munroe')
+        view = views.AuthorDelete.as_view(success_url='/edit/authors/create/?deleted=%(id)s')
+        res = view(DummyRequest(method='POST'), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/edit/authors/create/?deleted=%d' % a.pk)
+        self.assertRedirects(res, '/edit/authors/create/?deleted=%d' % a.id)
         self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_with_special_properties(self):
-        a = Author.objects.create(**{'name': 'Randall Munroe', 'slug': 'randall-munroe'})
-        res = self.client.get('/edit/author/%d/delete/special/' % a.pk)
+        a = self.author(name='Randall Munroe', slug='randall-munroe')
+        view = views.SpecializedAuthorDelete.as_view()
+        res = view(DummyRequest(), pk=a.id)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], Author.objects.get(pk=a.pk))
-        self.assertEqual(res.context['thingy'], Author.objects.get(pk=a.pk))
+        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==a.id).one())
+        self.assertEqual(res.context['thingy'], session.query(Author).filter(Author.id==a.id).one())
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/confirm_delete.html')
 
-        res = self.client.post('/edit/author/%d/delete/special/' % a.pk)
+        res = view(DummyRequest(method='POST'), pk=a.id)
         self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, 'http://testserver/list/authors/')
+        self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(session.query(Author).all(), [])
 
     def test_delete_without_redirect(self):
-        a = Author.objects.create(
-            name='Randall Munroe',
-            slug='randall-munroe',
-        )
+        a = self.author(name='Randall Munroe', slug='randall-munroe')
         # Should raise exception -- No redirect URL provided, and no
         # get_absolute_url provided
+        view = views.NaiveAuthorDelete.as_view()
         with self.assertRaises(ImproperlyConfigured):
-            self.client.post('/edit/author/%d/delete/naive/' % a.pk)
+            res = view(DummyRequest(method='POST'), pk=a.id)
