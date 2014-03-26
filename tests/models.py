@@ -3,29 +3,15 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
-    Text,
-    String,
-    Boolean,
     DateTime,
-    ColumnDefault,
-    Float,
-    Enum,
-    func,
-    UniqueConstraint,
-    desc,
-    distinct,
-    alias,
-    select,
     Unicode,
     UnicodeText,
-    and_,
     Table)
-
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker, relationship
-from zope.sqlalchemy import ZopeTransactionExtension
-from .base import session
+from sqlalchemy.orm import relationship
+
+from tests.base import session
 
 Base = declarative_base()
 Base.metadata = MetaData()

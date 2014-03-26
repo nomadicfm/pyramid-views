@@ -1,17 +1,12 @@
-from __future__ import unicode_literals
-
-# from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
-# from django.test import TestCase
-# from django.views.generic.base import View
 from pyramid import httpexceptions
 from pyramid.testing import DummyRequest
 
-from .models import Artist, Author, Page
 from pyramid_views.utils import ImproperlyConfigured
 from pyramid_views.views.base import View
+
 from tests.base import BaseTest
-from . import views
-from .models import session
+from tests import views
+from tests.models import session, Author, Page
 
 
 class DetailViewTest(BaseTest):

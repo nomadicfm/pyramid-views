@@ -1,15 +1,11 @@
-# from django.core.exceptions import ImproperlyConfigured
-# from django.forms import models as model_forms
-# from django.http import HttpResponseRedirect
-# from django.utils.encoding import force_text
 from pyramid import httpexceptions
-import wtforms_alchemy
-from wtforms_alchemy import ModelForm
+
+from wtforms_alchemy import ModelForm, model_form_factory
+
 from pyramid_views.utils import ImproperlyConfigured, get_model_from_obj
 from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
 from pyramid_views.views.detail import (SingleObjectMixin,
                                         SingleObjectTemplateResponseMixin, BaseDetailView)
-from tests.base import session
 
 
 class FormMixin(ContextMixin):
@@ -122,7 +118,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
                 class Meta:
                     model = model_
                     only = self.fields
-            model_form = wtforms_alchemy.model_form_factory(ModelFormWithModel)
+            model_form = model_form_factory(ModelFormWithModel)
             model_form.Meta.model = model
             return model_form
 
@@ -158,9 +154,9 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             model = self.get_form_class().Meta.model
             self.object = model()
         form.populate_obj(self.object)
-        session.add(self.object)
+        self.object.session.add(self.object)
         # Do a flush to ensure we get the primary key back
-        session.flush()
+        self.object.session.flush()
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -265,7 +261,7 @@ class DeletionMixin(object):
         """
         self.object = self.get_object()
         success_url = self.get_success_url()
-        session.delete(self.object)
+        self.object.session.delete(self.object)
         return httpexceptions.HTTPFound(success_url)
 
     # Add support for browsers which only accept GET and POST for now.

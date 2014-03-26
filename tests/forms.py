@@ -3,7 +3,7 @@ from wtforms.fields.simple import TextAreaField
 from wtforms.validators import DataRequired, Length
 from wtforms_alchemy import ModelForm
 
-from .models import Author
+from tests.models import Author
 
 
 class AuthorForm(ModelForm):

@@ -1,12 +1,10 @@
 from __future__ import unicode_literals
 
-# from django.core.exceptions import ImproperlyConfigured
-# from django.db import models
-# from django.http import Http404
-# from django.utils.translation import ugettext as _
-from pyramid import httpexceptions
 from sqlalchemy.orm import Query
 from sqlalchemy.orm.exc import NoResultFound
+
+from pyramid import httpexceptions
+
 from pyramid_views.utils import ImproperlyConfigured, _
 from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
 from pyramid_views import utils

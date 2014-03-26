@@ -17,11 +17,13 @@ class TemplateModuleNotFound(Exception):
     """The template module could not be found for a given model"""
     pass
 
+
 class classonlymethod(classmethod):
     def __get__(self, instance, owner):
         if instance is not None:
             raise AttributeError("This method is available only on the view class.")
         return super(classonlymethod, self).__get__(instance, owner)
+
 
 def _(val):
     """Dummy placeholder for translation function used in Django code
@@ -44,6 +46,7 @@ def get_model_from_obj(obj):
         raise ValueError('Expected model or Query object, but got %s' % obj)
 
     return model
+
 
 def get_pk_field(obj):
     model = get_model_from_obj(obj)

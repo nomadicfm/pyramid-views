@@ -1,28 +1,18 @@
 from __future__ import unicode_literals
 
-from unittest import expectedFailure
-
-# from django.core.exceptions import ImproperlyConfigured
-# from django.core.urlresolvers import reverse
-# from django import forms
-# from django.test import TestCase
-# from django.test.client import RequestFactory
-# from django.views.generic.base import View
-# from django.views.generic.edit import FormMixin, ModelFormMixin, CreateView
 import unittest
 from pyramid.testing import DummyRequest
 from webob.multidict import MultiDict
 from wtforms_alchemy import ModelForm
-from pyramid_views.utils import ImproperlyConfigured
 
+from pyramid_views.utils import ImproperlyConfigured
 from pyramid_views.views.base import View
 from pyramid_views.views.edit import FormMixin, ModelFormMixin, CreateView
 
-from . import views
-from .models import Artist, Author
+from tests import views
+from tests.models import Artist, Author
 from tests.base import BaseTest, session
 from tests.forms import AuthorForm
-from tests.views import NaiveAuthorUpdate
 
 
 class FormMixinTests(BaseTest):
@@ -342,7 +332,7 @@ class UpdateViewTests(BaseTest):
         )
         # Should raise exception -- No redirect URL provided, and no
         # get_absolute_url provided
-        view = NaiveAuthorUpdate.as_view()
+        view = views.NaiveAuthorUpdate.as_view()
         with self.assertRaises(ImproperlyConfigured):
             view(DummyRequest(
                 method='POST',

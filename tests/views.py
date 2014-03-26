@@ -1,20 +1,12 @@
-from __future__ import unicode_literals
-
-# from django.contrib.auth.decorators import login_required
-# from django.core.paginator import Paginator
-# from django.core.urlresolvers import reverse, reverse_lazy
-# from django.utils.decorators import method_decorator
-# from django.views import generic
-
-# from .test_forms import AuthorForm, ContactForm
 from sqlalchemy.orm import Query
-from .models import Author, Book, Artist, Page
 from pyramid_views.paginator import Paginator
 from pyramid_views.views.base import TemplateView, View
 from pyramid_views.views import detail
 from pyramid_views.views.detail import DetailView
 from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin, UpdateView, DeleteView
 from pyramid_views.views.list import MultipleObjectMixin, ListView
+
+from tests.models import Author, Book, Artist, Page
 from tests.base import session
 from tests.forms import ContactForm, AuthorForm
 
@@ -174,7 +166,7 @@ class SpecializedAuthorDelete(DeleteView):
     def get_success_url(self):
         return '/list/authors/'
 
-#
+
 # class BookConfig(object):
 #     query = Book.objects.all()
 #     date_field = 'pubdate'
@@ -208,18 +200,18 @@ class SpecializedAuthorDelete(DeleteView):
 #     pass
 #
 #
+# class BookDetailGetObjectCustomQueryset(BookDetail):
+#     def get_object(self, query=None):
+#         return super(BookDetailGetObjectCustomQueryset, self).get_object(
+#             query=Book.objects.filter(pk=2))
+
+
 class AuthorGetQueryFormView(ModelFormMixin):
 
     def get_query(self):
         return Query(Author)
 
-#
-# class BookDetailGetObjectCustomQueryset(BookDetail):
-#     def get_object(self, query=None):
-#         return super(BookDetailGetObjectCustomQueryset, self).get_object(
-#             query=Book.objects.filter(pk=2))
-#
-#
+
 class CustomMultipleObjectMixinView(MultipleObjectMixin, View):
     query = [
         {'name': 'John'},
@@ -250,7 +242,7 @@ class CustomSingleObjectView(detail.SingleObjectMixin, View):
     model = Book
     object = Book(name="dummy")
 
-#
+
 # class BookSigningConfig(object):
 #     model = BookSigning
 #     date_field = 'event_date'
@@ -286,8 +278,8 @@ class CustomSingleObjectView(detail.SingleObjectMixin, View):
 #
 # class BookSigningDetail(BookSigningConfig, generic.DateDetailView):
 #     context_object_name = 'book'
-#
-#
+
+
 class NonModel(object):
     id = "non_model_1"
 

@@ -4,8 +4,7 @@ import unittest
 from pyramid import testing
 from pyramid.config import Configurator
 import six
-from sqlalchemy import MetaData, create_engine, event
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 from webtest import TestApp
@@ -14,6 +13,7 @@ Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 engine = create_engine('sqlite://')
 Session.configure(bind=engine)
 session = Session()
+
 
 def app_main(global_config, **settings):
     config = Configurator(settings=settings)

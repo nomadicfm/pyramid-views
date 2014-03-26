@@ -1,20 +1,13 @@
-from __future__ import unicode_literals
-
-import time
 import unittest
 
-# from django.core.exceptions import ImproperlyConfigured
-# from django.http import HttpResponse
-# from django.test import TestCase, RequestFactory
-from pyramid import testing
 from pyramid.testing import DummyRequest
-from webtest import TestApp
+from pyramid.response import Response
+
 from pyramid_views.views.base import View, TemplateView, RedirectView
+from pyramid_views.utils import ImproperlyConfigured
 
 from . import views
-from pyramid.response import Response
 from tests.base import BaseTest
-from pyramid_views.utils import ImproperlyConfigured
 
 
 class SimpleView(View):

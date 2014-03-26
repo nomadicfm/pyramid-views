@@ -1,20 +1,15 @@
 from __future__ import unicode_literals
 
-# from django.core.exceptions import ImproperlyConfigured
-# from django.test import TestCase, override_settings
-# from django.views.generic.base import View
-# from django.utils.encoding import force_str
 from unittest import skip
 from pyramid import httpexceptions
 from pyramid.testing import DummyRequest
-from sqlalchemy import event
-from sqlalchemy.orm.query import Query
 
-from .models import Author, Artist
 from pyramid_views.utils import ImproperlyConfigured
 from pyramid_views.views.base import View
+
+from tests.models import Author, Artist
 from tests import views
-from tests.base import BaseTest, session, engine
+from tests.base import BaseTest, session
 
 
 class ListViewTests(BaseTest):

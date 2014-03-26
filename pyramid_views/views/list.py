@@ -1,14 +1,8 @@
-from __future__ import unicode_literals
 from pyramid import httpexceptions
 from sqlalchemy.orm import Query
-from pyramid_views import utils
 
+from pyramid_views import utils
 from pyramid_views.paginator import Paginator, InvalidPage
-# from django.core.exceptions import ImproperlyConfigured
-# from django.db.models.query import QuerySet
-# from django.http import Http404
-# from django.utils.translation import ugettext as _
-# from django.views.generic.base import TemplateResponseMixin, ContextMixin, View
 from pyramid_views.utils import ImproperlyConfigured, _
 from pyramid_views.views.base import ContextMixin, View, TemplateResponseMixin
 

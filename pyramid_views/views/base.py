@@ -3,11 +3,6 @@ from __future__ import unicode_literals
 import logging
 from functools import update_wrapper
 
-# from django import http
-# from django.core.exceptions import ImproperlyConfigured
-# from django.core.urlresolvers import reverse, NoReverseMatch
-# from django.template.response import TemplateResponse
-# from django.utils import six
 from pyramid import httpexceptions
 from pyramid.renderers import render_to_response
 from pyramid.response import Response
