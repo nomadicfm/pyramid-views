@@ -159,7 +159,7 @@ class BaseListView(MultipleObjectMixin, View):
             # queryset in memory.
             if (self.get_paginate_by(self.object_list) is not None
                     and hasattr(self.object_list, 'exists')):
-                is_empty = not self.object_list.exists()
+                is_empty = not self.object_list.session.query(self.object_list.exists()).scalar()
             else:
                 is_empty = self.object_list.count() == 0
             if is_empty:

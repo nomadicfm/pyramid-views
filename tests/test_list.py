@@ -216,6 +216,14 @@ class ListViewTests(BaseTest):
         view = views.AuthorList.as_view(queryset=None)
         self.assertRaises(ImproperlyConfigured, view, DummyRequest(path='/foo', method='GET'))
 
+    def test_paginate_by_no_allow_empty(self):
+        self.author()
+        view = views.AuthorList.as_view(allow_empty=False, paginate_by=2)
+        res = view(DummyRequest(path='/foo', method='GET'))
+        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertIs(res.context['author_list'], res.context['object_list'])
+        self.assertTemplateUsed(res, 'tests:templates/author_list.html')
+
     @skip("SQLAlchemy lacks Django's ORM's implemention of exists().")
     def test_paginated_list_view_does_not_load_entire_table(self):
         # Regression test for #17535
@@ -227,9 +235,9 @@ class ListViewTests(BaseTest):
         with self.assertNumQueries(1):
             self._make_authors(1)
         # 1 query for authors
-        with self.assertNumQueries(1):
-            view = views.AuthorList.as_view(allow_empty=False)
-            view(DummyRequest(path='/foo', method='GET'))
+        # with self.assertNumQueries(1):
+        #     view = views.AuthorList.as_view(allow_empty=False)
+        #     view(DummyRequest(path='/foo', method='GET'))
         # same as above + 1 query to test if authors exist + 1 query for pagination
         with self.assertNumQueries(3):
             view = views.AuthorList.as_view(allow_empty=False, paginate_by=2)
