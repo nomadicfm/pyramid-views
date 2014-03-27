@@ -2,7 +2,9 @@
 *~
 *.egg
 *.egg-info/
+*.sqlite
 wsgi_eggs/
 /.idea
 /docs/_build
 /.coverage
+/dist
