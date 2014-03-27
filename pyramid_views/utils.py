@@ -1,6 +1,7 @@
 import re
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.query import Query
+import sys
 
 
 class ImproperlyConfigured(Exception):
@@ -61,10 +62,15 @@ def get_field(obj, field_name):
     return getattr(model, field_name)
 
 
-def get_template_package_name(model):
-    """Get the template package for a given model"""
-    module_name = model.__module__
+def get_template_package(obj):
+    package_name = get_template_package_name(obj)
+    return sys.modules[package_name]
+
+
+def get_template_package_name(obj):
+    """Get the template package for a given model/view"""
+    module_name = obj.__module__
     matches = re.match(r'(.*)\.(.*?)', module_name)
     if not matches:
-        raise TemplateModuleNotFound('Could not determine template module for model %s in module %s' % (model, module_name))
+        raise TemplateModuleNotFound('Could not determine template module for model %s in module %s' % (obj, module_name))
     return matches.group(1)
