@@ -168,6 +168,7 @@ class MultipleObjectTemplateResponseMixin(TemplateResponseMixin):
     Mixin for responding with a template and list of objects.
     """
     template_name_suffix = '_list'
+    template_extension = '.pt'
 
     def get_template_names(self):
         """
@@ -188,7 +189,8 @@ class MultipleObjectTemplateResponseMixin(TemplateResponseMixin):
         if isinstance(self.object_list, Query):
             model = utils.model_from_query(self.object_list)
             package = utils.get_template_package_name(model)
-            names.append("%s:templates/%s%s.html" % (package, model.__tablename__, self.template_name_suffix))
+            names.append("%s:templates/%s%s%s" % (package, model.__tablename__,
+                                                   self.template_name_suffix, self.template_extension))
 
         # For benefit of tests
         self._template_names = names
