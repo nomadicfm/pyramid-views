@@ -8,7 +8,7 @@ from pyramid.renderers import render_to_response
 from pyramid.response import Response
 from zope.interface.interfaces import ComponentLookupError
 
-from pyramid_views.utils import ImproperlyConfigured, classonlymethod
+from pyramid_views.utils import ImproperlyConfigured, classonlymethod, get_template_package
 
 logger = logging.getLogger('django.request')
 
@@ -131,6 +131,7 @@ class TemplateResponseMixin(object):
             renderer_name=self.get_template_names()[0],
             value=context,
             request=self.request,
+            package=get_template_package(self)
         )
         if self.content_type:
             response.content_type = self.content_type
