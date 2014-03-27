@@ -4,10 +4,10 @@ from sqlalchemy.orm import Query
 from pyramid_views import utils
 from pyramid_views.paginator import Paginator, InvalidPage
 from pyramid_views.utils import ImproperlyConfigured, _
-from pyramid_views.views.base import ContextMixin, View, TemplateResponseMixin
+from pyramid_views.views.base import ContextMixin, View, TemplateResponseMixin, DbSessionMixin
 
 
-class MultipleObjectMixin(ContextMixin):
+class MultipleObjectMixin(DbSessionMixin, ContextMixin):
     """
     A mixin for views manipulating multiple objects.
     """
@@ -30,20 +30,19 @@ class MultipleObjectMixin(ContextMixin):
         if self.query is not None:
             query = self.query
         elif self.model is not None:
-            query = Query(self.model)
+            query = self.get_db_session().query(self.model)
         else:
             raise ImproperlyConfigured(
-                "%(cls)s is missing a QuerySet. Define "
+                "%(cls)s is missing a Query. Define "
                 "%(cls)s.model, %(cls)s.query, or override "
                 "%(cls)s.get_query()." % {
                     'cls': self.__class__.__name__
                 }
             )
 
-        # Set the session on the query (there may be a better way of handling this which
-        # doesn't involve using a private API)
-        if isinstance(query, Query):
-            query.session = utils.model_from_query(query).session
+        # Set the session on the query if it doesn't have one
+        if isinstance(query, Query) and not query.session:
+            query.session = self.get_db_session()
 
         return query
 

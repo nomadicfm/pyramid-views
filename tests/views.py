@@ -7,7 +7,7 @@ from pyramid_views.views.edit import FormView, CreateView, ModelFormMixin, Updat
 from pyramid_views.views.list import MultipleObjectMixin, ListView
 
 from tests.models import Author, Book, Artist, Page
-from tests.base import session
+from tests.base import Session
 from tests.forms import ContactForm, AuthorForm
 
 
@@ -28,15 +28,17 @@ class ObjectDetail(DetailView):
 
 
 class ArtistDetail(DetailView):
+    # Use straight Query rather than Session.query to ensure
+    # the session is being acquired correctly
     query = Query(Artist)
 
 
 class AuthorDetail(DetailView):
-    query = Query(Author)
+    query = Session.query(Author)
 
 
 class PageDetail(DetailView):
-    query = Query(Page)
+    query = Session.query(Page)
     template_name_field = 'template'
 
 
@@ -51,11 +53,11 @@ class DictList(ListView):
 
 class ArtistList(ListView):
     template_name = 'tests:templates/list.html'
-    query = Query(Artist)
+    query = Session.query(Artist)
 
 
 class AuthorList(ListView):
-    query = Query(Author)
+    query = Session.query(Author)
 
 
 class CustomPaginator(Paginator):
@@ -89,7 +91,7 @@ class ArtistCreate(CreateView):
 
 
 class NaiveAuthorCreate(CreateView):
-    query = Query(Author)
+    query = Session.query(Author)
 
 
 class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, View):
@@ -124,7 +126,7 @@ class ArtistUpdate(UpdateView):
 
 
 class NaiveAuthorUpdate(UpdateView):
-    query = Query(Author)
+    query = Session.query(Author)
 
 
 class AuthorUpdate(UpdateView):
@@ -136,7 +138,7 @@ class OneAuthorUpdate(UpdateView):
     success_url = '/list/authors/'
 
     def get_object(self, query=None):
-        return session.query(Author).filter(Author.id==1).one()
+        return Session.query(Author).filter(Author.id==1).one()
 
 
 class SpecializedAuthorUpdate(UpdateView):
@@ -150,7 +152,7 @@ class SpecializedAuthorUpdate(UpdateView):
 
 
 class NaiveAuthorDelete(DeleteView):
-    query = Query(Author)
+    query = Session.query(Author)
 
 
 class AuthorDelete(DeleteView):
@@ -159,7 +161,7 @@ class AuthorDelete(DeleteView):
 
 
 class SpecializedAuthorDelete(DeleteView):
-    query = Query(Author)
+    query = Session.query(Author)
     template_name = 'tests:templates/confirm_delete.html'
     context_object_name = 'thingy'
 
@@ -209,7 +211,7 @@ class SpecializedAuthorDelete(DeleteView):
 class AuthorGetQueryFormView(ModelFormMixin):
 
     def get_query(self):
-        return Query(Author)
+        return Session.query(Author)
 
 
 class CustomMultipleObjectMixinView(MultipleObjectMixin, View):
@@ -296,4 +298,4 @@ class NonModelDetail(DetailView):
 
 class ObjectDoesNotExistDetail(DetailView):
     def get_query(self):
-        return Query(Book).filter(Book.id==123)
+        return Session.query(Book).filter(Book.id==123)

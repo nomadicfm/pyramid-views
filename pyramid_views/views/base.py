@@ -9,6 +9,7 @@ from pyramid.response import Response
 from zope.interface.interfaces import ComponentLookupError
 
 from pyramid_views.utils import ImproperlyConfigured, classonlymethod, get_template_package
+import pyramid_views
 
 logger = logging.getLogger('django.request')
 
@@ -24,6 +25,26 @@ class ContextMixin(object):
             kwargs['view'] = self
         self._context = kwargs
         return kwargs
+
+
+class DbSessionMixin(object):
+    """
+    A default db session mixin which will provide access to the
+    application's scoped database session
+    """
+
+    session = None
+
+    def get_db_session(self):
+        if self.session:
+            return self.session
+        elif pyramid_views.session:
+            return pyramid_views.session
+        else:
+            raise ImproperlyConfigured("DB session not available. Either set the view's 'session' "
+                                       "attribute, or call pyramid_views.configure_views() with a "
+                                       "scoped session.")
+
 
 
 class View(object):

@@ -11,11 +11,10 @@ from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from tests.base import session
+from tests.base import Session
 
 Base = declarative_base()
 Base.metadata = MetaData()
-Base.session = session
 
 
 class Artist(Base):

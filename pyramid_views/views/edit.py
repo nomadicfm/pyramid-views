@@ -154,9 +154,10 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             model = self.get_form_class().Meta.model
             self.object = model()
         form.populate_obj(self.object)
-        self.object.session.add(self.object)
+        session = self.get_db_session()
+        session.add(self.object)
         # Do a flush to ensure we get the primary key back
-        self.object.session.flush()
+        session.flush()
         return super(ModelFormMixin, self).form_valid(form)
 
 
@@ -261,7 +262,8 @@ class DeletionMixin(object):
         """
         self.object = self.get_object()
         success_url = self.get_success_url()
-        self.object.session.delete(self.object)
+        session = self.get_db_session()
+        session.delete(self.object)
         return httpexceptions.HTTPFound(success_url)
 
     # Add support for browsers which only accept GET and POST for now.

@@ -9,7 +9,7 @@ from pyramid_views.views.base import View
 
 from tests.models import Author, Artist
 from tests import views
-from tests.base import BaseTest, session
+from tests.base import BaseTest, Session
 
 
 class ListViewTests(BaseTest):
@@ -27,7 +27,7 @@ class ListViewTests(BaseTest):
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertIsInstance(res.context['view'], View)
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertIsNone(res.context['paginator'])
@@ -55,7 +55,7 @@ class ListViewTests(BaseTest):
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertEqual(res.context['page_obj'].number, 1)
         self.assertEqual(res.context['paginator'].num_pages, 1)
@@ -132,7 +132,7 @@ class ListViewTests(BaseTest):
         self.assertEqual(len(res.context['object_list']), 7)
 
     def test_paginated_orphaned_query(self):
-        self.assertEqual(session.query(Author).count(), 0)
+        self.assertEqual(Session.query(Author).count(), 0)
         self._make_authors(92)
         view = views.AuthorList.as_view(paginate_by=30, paginate_orphans=2)
         res = view(DummyRequest())
@@ -159,7 +159,7 @@ class ListViewTests(BaseTest):
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
         self.assertTemplateUsed(res, 'tests:templates/list.html')
-        self.assertEqual(list(res.context['object_list']), list(session.query(Artist).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Artist).all()))
         self.assertIs(res.context['artist_list'], res.context['object_list'])
         self.assertIsNone(res.context['paginator'])
         self.assertIsNone(res.context['page_obj'])
@@ -170,14 +170,14 @@ class ListViewTests(BaseTest):
         view = views.ArtistList.as_view(allow_empty=False)
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        session.query(Artist).delete()
+        Session.query(Artist).delete()
         self.assertRaises(httpexceptions.HTTPNotFound, view, DummyRequest())
 
     def test_template_name(self):
         view = views.AuthorList.as_view(template_name='tests:templates/list.html')
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertTemplateUsed(res, 'tests:templates/list.html')
 
@@ -185,7 +185,7 @@ class ListViewTests(BaseTest):
         view = views.AuthorList.as_view(template_name_suffix='_objects')
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertTemplateUsed(res, 'tests:templates/author_objects.html')
 
@@ -193,7 +193,7 @@ class ListViewTests(BaseTest):
         view = views.AuthorList.as_view(context_object_name='author_list')
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertNotIn('authors', res.context)
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
@@ -202,7 +202,7 @@ class ListViewTests(BaseTest):
         view = views.AuthorList.as_view(context_object_name='object_list')
         res = view(DummyRequest())
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertNotIn('authors', res.context)
         self.assertNotIn('author_list', res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
@@ -215,7 +215,7 @@ class ListViewTests(BaseTest):
         self.author()
         view = views.AuthorList.as_view(allow_empty=False, paginate_by=2)
         res = view(DummyRequest())
-        self.assertEqual(list(res.context['object_list']), list(session.query(Author).all()))
+        self.assertEqual(list(res.context['object_list']), list(Session.query(Author).all()))
         self.assertIs(res.context['author_list'], res.context['object_list'])
         self.assertTemplateUsed(res, 'tests:templates/author_list.html')
 

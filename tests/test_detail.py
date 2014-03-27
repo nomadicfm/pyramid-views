@@ -6,7 +6,7 @@ from pyramid_views.views.base import View
 
 from tests.base import BaseTest
 from tests import views
-from tests.models import session, Author, Page
+from tests.models import Session, Author, Page
 
 
 class DetailViewTest(BaseTest):
@@ -24,8 +24,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view()
         res = view(DummyRequest(), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
-        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_detail_missing_object(self):
@@ -43,8 +43,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view(pk_url_kwarg='foo')
         res = view(DummyRequest(), foo=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
-        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_detail_by_slug(self):
@@ -53,8 +53,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view()
         res = view(DummyRequest(), slug='scott-rosenberg')
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
-        self.assertEqual(res.context['author'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.slug=='scott-rosenberg').one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.slug=='scott-rosenberg').one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_detail_by_custom_slug(self):
@@ -63,8 +63,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view(slug_url_kwarg='foo')
         res = view(DummyRequest(), foo='scott-rosenberg')
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
-        self.assertEqual(res.context['author'], session.query(Author).filter(Author.slug=='scott-rosenberg').one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.slug=='scott-rosenberg').one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.slug=='scott-rosenberg').one())
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
     def test_template_name(self):
@@ -72,8 +72,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view(template_name='tests:templates/about.html')
         res = view(DummyRequest(), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
-        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/about.html')
 
     def test_template_name_suffix(self):
@@ -81,8 +81,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view(template_name_suffix='_view')
         res = view(DummyRequest(), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
-        self.assertEqual(res.context['author'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/author_view.html')
 
     def test_template_name_field(self):
@@ -90,8 +90,8 @@ class DetailViewTest(BaseTest):
         view = views.PageDetail.as_view()
         res = view(DummyRequest(), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Page).filter(Page.id==1).one())
-        self.assertEqual(res.context['page'], session.query(Page).filter(Page.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Page).filter(Page.id==1).one())
+        self.assertEqual(res.context['page'], Session.query(Page).filter(Page.id==1).one())
         self.assertTemplateUsed(res, 'tests:templates/page_template.html')
 
     def test_context_object_name(self):
@@ -99,8 +99,8 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view(context_object_name='thingy')
         res = view(DummyRequest(), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
-        self.assertEqual(res.context['thingy'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['thingy'], Session.query(Author).filter(Author.id==1).one())
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 
@@ -109,7 +109,7 @@ class DetailViewTest(BaseTest):
         view = views.AuthorDetail.as_view(context_object_name='object')
         res = view(DummyRequest(), pk=1)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.context['object'], session.query(Author).filter(Author.id==1).one())
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==1).one())
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_detail.html')
 

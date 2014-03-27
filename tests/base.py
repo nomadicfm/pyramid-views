@@ -9,11 +9,12 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 from webtest import TestApp
 from pyramid_views.views import MultipleObjectTemplateResponseMixin, SingleObjectTemplateResponseMixin
+from pyramid_views import configure_views
 
 Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 engine = create_engine('sqlite://')
 Session.configure(bind=engine)
-session = Session()
+configure_views(Session)
 
 
 def app_main(global_config, **settings):
@@ -29,8 +30,8 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         super(BaseTest, self).setUp()
         from .models import Base
-        session.expire_all()
-        session.flush()
+        Session.expire_all()
+        Session.flush()
         Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
 
@@ -55,10 +56,10 @@ class BaseTest(unittest.TestCase):
         def handle_query(conn, cursor, statement, parameters, *args, **kwargs):
             print statement + "\n"
             statements.append(statement)
-        session.flush()
+        Session.flush()
         event.listen(engine, "before_cursor_execute", handle_query)
         yield
-        session.flush()
+        Session.flush()
         event.remove(engine, "before_cursor_execute", handle_query)
         self.assertEqual(len(statements), num_queries, "Ran %s queries, expected %s" % (len(statements), num_queries))
 
@@ -85,20 +86,20 @@ class BaseTest(unittest.TestCase):
     def artist(self, name='Rene Magritte'):
         from .models import Artist
         artist = Artist(name=name)
-        session.add(artist)
-        session.flush()
+        Session.add(artist)
+        Session.flush()
         return artist
 
     def author(self, name=u'Roberto Bolaño', slug='roberto-bolano'):
         from .models import Author
         author = Author(name=name, slug=slug)
-        session.add(author)
-        session.flush()
+        Session.add(author)
+        Session.flush()
         return author
 
     def page(self, template=u'tests:templates/page_template.html', content='I was once bitten by a moose'):
         from .models import Page
         page = Page(template=template, content=content)
-        session.add(page)
-        session.flush()
+        Session.add(page)
+        Session.flush()
         return page

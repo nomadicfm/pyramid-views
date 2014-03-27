@@ -6,10 +6,10 @@ from sqlalchemy.orm.exc import NoResultFound
 from pyramid import httpexceptions
 
 from pyramid_views.utils import ImproperlyConfigured, _
-from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
+from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View, DbSessionMixin
 from pyramid_views import utils
 
-class SingleObjectMixin(ContextMixin):
+class SingleObjectMixin(DbSessionMixin, ContextMixin):
     """
     Provides the ability to retrieve a single object for further manipulation.
     """
@@ -31,10 +31,6 @@ class SingleObjectMixin(ContextMixin):
         # like DateDetailView
         if query is None:
             query = self.get_query()
-
-        # Set the session on the query (there may be a better way of handling this which
-        # doesn't involve using a private API)
-        query.session = utils.model_from_query(query).session
 
         # Next, try looking up by primary key.
         pk = self.kwargs.get(self.pk_url_kwarg, None)
@@ -71,7 +67,7 @@ class SingleObjectMixin(ContextMixin):
         """
         if self.query is None:
             if self.model:
-                return Query(self.model)
+                return self.get_db_session().query(self.model)
             else:
                 raise ImproperlyConfigured(
                     "%(cls)s is missing a Query. Define "
@@ -80,6 +76,11 @@ class SingleObjectMixin(ContextMixin):
                         'cls': self.__class__.__name__
                     }
                 )
+
+        # Set the session on the query if it doesn't have one
+        if isinstance(self.query, Query) and not self.query.session:
+            self.query.session = self.get_db_session()
+
         return self.query
 
     def get_slug_field(self):

@@ -2,7 +2,7 @@
 *~
 *.egg
 *.egg-info/
-*.sqlite
+*.sqlite*
 wsgi_eggs/
 /.idea
 /docs/_build
