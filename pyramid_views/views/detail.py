@@ -127,6 +127,7 @@ class BaseDetailView(SingleObjectMixin, View):
 class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
     template_name_field = None
     template_name_suffix = '_detail'
+    template_extension = '.pt'
 
     def get_template_names(self):
         """
@@ -157,17 +158,19 @@ class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
             # only use this if the object in question is a model.
             if hasattr(self.object, '__table__'):
                 template_package = utils.get_template_package_name(self.object)
-                names.append("%s:templates/%s%s.html" % (
+                names.append("%s:templates/%s%s%s" % (
                     template_package,
                     self.object.__tablename__,
-                    self.template_name_suffix
+                    self.template_name_suffix,
+                    self.template_extension
                 ))
             elif hasattr(self, 'model') and self.model is not None and hasattr(self.model, '__tablename__'):
                 template_package = utils.get_template_package_name(self.model)
-                names.append("%s:templates/%s%s.html" % (
+                names.append("%s:templates/%s%s%s" % (
                     template_package,
                     self.model.__tablename__,
-                    self.template_name_suffix
+                    self.template_name_suffix,
+                    self.template_extension
                 ))
 
             # If we still haven't managed to find any template names, we should
