@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 from webtest import TestApp
+from pyramid_views.views import MultipleObjectTemplateResponseMixin, SingleObjectTemplateResponseMixin
 
 Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 engine = create_engine('sqlite://')
@@ -37,6 +38,8 @@ class BaseTest(unittest.TestCase):
         self.config = testing.setUp()
         self.config.include('pyramid_jinja2')
         self.config.add_renderer('.html', 'pyramid_jinja2.renderer_factory')
+        MultipleObjectTemplateResponseMixin.template_extension = '.html'
+        SingleObjectTemplateResponseMixin.template_extension = '.html'
 
     def tearDown(self):
         super(BaseTest, self).tearDown()
