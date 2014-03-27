@@ -1,9 +1,10 @@
 import unittest
+from chameleon.zpt.template import Macro
 
 from pyramid.testing import DummyRequest
 from pyramid.response import Response
 
-from pyramid_views.views.base import View, TemplateView, RedirectView
+from pyramid_views.views.base import View, TemplateView, RedirectView, MacroMixin
 from pyramid_views.utils import ImproperlyConfigured
 
 from . import views
@@ -495,3 +496,17 @@ class SingleObjectTemplateResponseMixinTest(unittest.TestCase):
         """
         view = views.TemplateResponseWithoutTemplate()
         self.assertRaises(ImproperlyConfigured, view.get_template_names)
+
+
+class MacroMixinTest(BaseTest):
+
+    def test_get_macros(self):
+        class MyMacroMixin(MacroMixin):
+            macro_names = {
+                'forms': 'pyramid_views:macros/forms.pt'
+            }
+        macros = MyMacroMixin().get_macros()
+        self.assertIn('forms', macros)
+        self.assertIn('form', macros['forms'].names)
+        self.assertIsInstance(macros['forms']['form'], Macro)
+

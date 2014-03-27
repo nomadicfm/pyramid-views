@@ -1,3 +1,4 @@
+from chameleon.zpt.template import Macro
 from pyramid import httpexceptions
 from pyramid.testing import DummyRequest
 
@@ -17,6 +18,7 @@ class DetailViewTest(BaseTest):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['object'], {'foo': 'bar'})
         self.assertIsInstance(res.context['view'], View)
+        self.assertIsInstance(res.context['macros']['my_macros']['testmacro'], Macro)
         self.assertTemplateUsed(res, 'tests:templates/detail.html')
 
     def test_detail_by_pk(self):

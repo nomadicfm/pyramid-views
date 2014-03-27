@@ -4,7 +4,7 @@ import logging
 from functools import update_wrapper
 
 from pyramid import httpexceptions
-from pyramid.renderers import render_to_response
+from pyramid.renderers import render_to_response, get_renderer
 from pyramid.response import Response
 from zope.interface.interfaces import ComponentLookupError
 
@@ -25,6 +25,33 @@ class ContextMixin(object):
             kwargs['view'] = self
         self._context = kwargs
         return kwargs
+
+
+class MacroMixin(object):
+    macro_names = None
+
+    def get_macro_names(self):
+        """
+        Return a directory of macro names.
+
+        Values should be template paths, and keys will be used
+        as the lookup key in the template. Eg. macros.<key>.<macro>.
+        """
+        return self.macro_names or {}
+
+    def get_macros(self):
+        macro_names = self.get_macro_names()
+        macros = {}
+        for k, macro_name in macro_names.items():
+            template = get_renderer(macro_name).implementation()
+            if hasattr(template, 'macros'):
+                macros[k] = template.macros
+        return macros
+
+    def get_context_data(self, **kwargs):
+        context = super(MacroMixin, self).get_context_data(**kwargs)
+        context['macros'] = self.get_macros()
+        return context
 
 
 class DbSessionMixin(object):
@@ -82,6 +109,9 @@ class View(object):
                                 "attributes of the class." % (cls.__name__, key))
 
         def view(request, *args, **kwargs):
+            # Pass the matchdict into the kwargs so dispatch receives
+            # the values as kwargs
+            kwargs.update(request.matchdict)
             self = cls(**initkwargs)
             if hasattr(self, 'get') and not hasattr(self, 'head'):
                 self.head = self.get
@@ -175,7 +205,7 @@ class TemplateResponseMixin(object):
             return self._template_names
 
 
-class TemplateView(TemplateResponseMixin, ContextMixin, View):
+class TemplateView(TemplateResponseMixin, ContextMixin, MacroMixin, View):
     """
     A view that renders a template.  This view will also pass into the context
     any keyword arguments passed by the url conf.

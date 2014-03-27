@@ -11,14 +11,17 @@
             <div class="col-md-8 col-md-offset-2">
                 <h1>Books</h1>
                 <ul>
-                    <li tal:repeat="book book_list" tal:content="book" />
+                    <li tal:repeat="book book_list">
+                        ${book.title} - ${book.author_name}
+                            [<a href="/book/update/${book.id}">Edit</a>,
+                            <a href="/book/delete/${book.id}">Delete</a>]
+                    </li>
                 </ul>
+                <p>
+                    <a href="/book/create">Create new book</a>
+                </p>
             </div>
         </div>
     </div>
 </body>
 </html>
-
-
-
-${book_list}

@@ -6,10 +6,10 @@ from sqlalchemy.orm.exc import NoResultFound
 from pyramid import httpexceptions
 
 from pyramid_views.utils import ImproperlyConfigured, _
-from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View, DbSessionMixin
+from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View, DbSessionMixin, MacroMixin
 from pyramid_views import utils
 
-class SingleObjectMixin(DbSessionMixin, ContextMixin):
+class SingleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
     """
     Provides the ability to retrieve a single object for further manipulation.
     """

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import unittest
+from chameleon.zpt.template import Macro
 from pyramid.testing import DummyRequest
 from webob.multidict import MultiDict
 from wtforms_alchemy import ModelForm
@@ -75,6 +76,7 @@ class CreateViewTests(BaseTest):
         self.assertFalse('object' in res.context)
         self.assertFalse('author' in res.context)
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
+        self.assertIsInstance(res.context['macros']['my_macros']['testmacro'], Macro)
 
         res = view(DummyRequest(
             method='POST',
@@ -209,9 +211,12 @@ class UpdateViewTests(BaseTest):
         res = view(DummyRequest(), pk=a.id)
         self.assertEqual(res.status_code, 200)
         self.assertIsInstance(res.context['form'], ModelForm)
+        self.assertEqual(res.context['form']._fields['name'].object_data, 'Randall Munroe')
+        self.assertEqual(res.context['form']._fields['slug'].object_data, 'randall-munroe')
         self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==a.id).one())
         self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==a.id).one())
         self.assertTemplateUsed(res, 'tests:templates/author_form.html')
+        self.assertIsInstance(res.context['macros']['my_macros']['testmacro'], Macro)
 
         # Modification with both POST and PUT (browser compatible)
         res = view(DummyRequest(
@@ -373,6 +378,7 @@ class DeleteViewTests(BaseTest):
         self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==a.id).one())
         self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==a.id).one())
         self.assertTemplateUsed(res, 'tests:templates/author_confirm_delete.html')
+        self.assertIsInstance(res.context['macros']['my_macros']['testmacro'], Macro)
 
         # Deletion with POST
         res = view(DummyRequest(method='POST'), pk=a.id)

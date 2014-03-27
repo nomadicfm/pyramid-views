@@ -1,3 +1,4 @@
+from pyramid.renderers import get_renderer
 from pyramid.response import Response
 from pyramid.view import view_config
 
@@ -33,6 +34,29 @@ class HomeView(views.TemplateView):
 class BookListView(views.ListView):
     model = Book
 
+
+class BookUpdateView(views.UpdateView):
+    model = Book
+    success_url = '/book/list'
+    macro_names = {
+        'forms': 'pyramid_views:macros/forms.pt',
+    }
+
+
+class BookDeleteView(views.DeleteView):
+    model = Book
+    success_url = '/book/list'
+    macro_names = {
+        'forms': 'pyramid_views:macros/forms.pt',
+    }
+
+
+class BookCreateView(views.CreateView):
+    model = Book
+    success_url = '/book/list'
+    macro_names = {
+        'forms': 'pyramid_views:macros/forms.pt',
+    }
 
 
 conn_err_msg = """\

@@ -22,6 +22,9 @@ class CustomTemplateView(TemplateView):
 
 class ObjectDetail(DetailView):
     template_name = 'tests:templates/detail.html'
+    macro_names = {
+        'my_macros': 'tests:templates/macros.pt',
+    }
 
     def get_object(self):
         return {'foo': 'bar'}
@@ -58,6 +61,9 @@ class ArtistList(ListView):
 
 class AuthorList(ListView):
     query = Session.query(Author)
+    macro_names = {
+        'my_macros': 'tests:templates/macros.pt',
+    }
 
 
 class CustomPaginator(Paginator):
@@ -105,6 +111,9 @@ class TemplateResponseWithoutTemplate(detail.SingleObjectTemplateResponseMixin, 
 class AuthorCreate(CreateView):
     model = Author
     success_url = '/list/authors/'
+    macro_names = {
+        'my_macros': 'tests:templates/macros.pt',
+    }
 
 
 class SpecializedAuthorCreate(CreateView):
@@ -132,6 +141,9 @@ class NaiveAuthorUpdate(UpdateView):
 class AuthorUpdate(UpdateView):
     model = Author
     success_url = '/list/authors/'
+    macro_names = {
+        'my_macros': 'tests:templates/macros.pt',
+    }
 
 
 class OneAuthorUpdate(UpdateView):
@@ -158,6 +170,9 @@ class NaiveAuthorDelete(DeleteView):
 class AuthorDelete(DeleteView):
     model = Author
     success_url = '/list/authors/'
+    macro_names = {
+        'my_macros': 'tests:templates/macros.pt',
+    }
 
 
 class SpecializedAuthorDelete(DeleteView):

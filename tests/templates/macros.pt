@@ -1,0 +1,3 @@
+<form action="" metal:define-macro="testmacro">
+    Test macro content
+</form>

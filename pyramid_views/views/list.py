@@ -4,10 +4,10 @@ from sqlalchemy.orm import Query
 from pyramid_views import utils
 from pyramid_views.paginator import Paginator, InvalidPage
 from pyramid_views.utils import ImproperlyConfigured, _
-from pyramid_views.views.base import ContextMixin, View, TemplateResponseMixin, DbSessionMixin
+from pyramid_views.views.base import ContextMixin, View, TemplateResponseMixin, DbSessionMixin, MacroMixin
 
 
-class MultipleObjectMixin(DbSessionMixin, ContextMixin):
+class MultipleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
     """
     A mixin for views manipulating multiple objects.
     """

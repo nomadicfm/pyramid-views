@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from unittest import skip
+from chameleon.zpt.template import Macro
 from pyramid import httpexceptions
 from pyramid.testing import DummyRequest
 
@@ -33,6 +34,7 @@ class ListViewTests(BaseTest):
         self.assertIsNone(res.context['paginator'])
         self.assertIsNone(res.context['page_obj'])
         self.assertFalse(res.context['is_paginated'])
+        self.assertIsInstance(res.context['macros']['my_macros']['testmacro'], Macro)
 
     def test_paginated_query(self):
         self._make_authors(100)

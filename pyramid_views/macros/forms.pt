@@ -1,0 +1,8 @@
+<form action="" method="post" metal:define-macro="form">
+    <div class="field-row" tal:repeat="field form">
+        <label for="${field.id}">${field.label}</label>
+        ${field}
+    </div>
+
+    <input type="submit"/>
+</form>

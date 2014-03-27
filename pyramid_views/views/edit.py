@@ -3,7 +3,7 @@ from pyramid import httpexceptions
 from wtforms_alchemy import ModelForm, model_form_factory
 
 from pyramid_views.utils import ImproperlyConfigured, get_model_from_obj
-from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View
+from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View, MacroMixin
 from pyramid_views.views.detail import (SingleObjectMixin,
                                         SingleObjectTemplateResponseMixin, BaseDetailView)
 
@@ -49,6 +49,7 @@ class FormMixin(ContextMixin):
         kwargs = {
             'data': self.get_initial(),
             'prefix': self.get_prefix() or '',
+            'obj': self.object,
         }
 
         if self.request.method in ('POST', 'PUT'):
@@ -161,7 +162,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-class ProcessFormView(View):
+class ProcessFormView(MacroMixin, View):
     """
     A mixin that renders a form on GET and processes it on POST.
     """
