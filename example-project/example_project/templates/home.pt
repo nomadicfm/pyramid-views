@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Example Pyramid Class Based Views Project</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h1>Welcome to the Pyramid Views Example Project</h1>
+                <p>
+                    Pyramid Views gives you access to Django-style class-based
+                    views from within Pyramid.
+                </p>
+                <ul>
+                    <li><a href="/about">About page</a> (simple <code>TemplateView</code> setup in <code>main()</code>)</li>
+                    <li><a href="/book/list">Manage books</a> (<code>ListView</code>)</li>
+                    <li><a href="/book/list">Create books</a> (<code>CreateView</code>)</li>
+                </ul>
+                <p>
+                    There are currently <strong>${book_count} book(s)</strong> in the database.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
