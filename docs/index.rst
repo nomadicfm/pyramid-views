@@ -9,7 +9,7 @@ Pyramid Class-Based Views
 .. toctree::
     :maxdepth: 2
 
-    introduction
+    intro
     future-development
     api/index
 
