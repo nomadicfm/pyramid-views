@@ -10,6 +10,7 @@ Pyramid Class-Based Views
     :maxdepth: 2
 
     introduction
+    future-development
     api/index
 
 This site documents pyramid-views, a Pyramid port of Django's class-based generic views.
