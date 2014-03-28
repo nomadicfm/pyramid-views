@@ -60,11 +60,11 @@ class DbSessionMixin(object):
     application's scoped database session
     """
 
-    session = None
+    db_session = None
 
     def get_db_session(self):
-        if self.session:
-            return self.session
+        if self.db_session:
+            return self.db_session
         elif pyramid_views.session:
             return pyramid_views.session
         else:
