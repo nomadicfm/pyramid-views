@@ -5,10 +5,10 @@ Detail View
 
     .. autoclass:: DetailView
 
+        .. autoattribute:: model
         .. autoattribute:: query
         .. automethod:: get_query
         .. automethod:: get_object
-        .. autoattribute:: model
 
         .. autoattribute:: slug_field
         .. automethod:: get_slug_field
