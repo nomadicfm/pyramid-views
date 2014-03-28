@@ -49,7 +49,7 @@ class FormMixin(ContextMixin):
         kwargs = {
             'data': self.get_initial(),
             'prefix': self.get_prefix() or '',
-            'obj': self.object,
+            'obj': getattr(self, 'object', None),
         }
 
         if self.request.method in ('POST', 'PUT'):
