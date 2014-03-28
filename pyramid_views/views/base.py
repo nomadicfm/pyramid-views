@@ -35,7 +35,7 @@ class MacroMixin(object):
         Return a directory of macro names.
 
         Values should be template paths, and keys will be used
-        as the lookup key in the template. Eg. macros.<key>.<macro>.
+        as the lookup key in the template. Eg. ``macros.<key>.<macro>``.
         """
         return self.macro_names or {}
 
