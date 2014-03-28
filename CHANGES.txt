@@ -4,6 +4,32 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.0.0, Fri 28 Mar 2014
+===============================
+
+2fb382d300	Finishing API docs (Adam Charnock)
+15f99faf3e	Work on docs (Adam Charnock)
+4b5add7a55	Work on docs (Adam Charnock)
+ee2ba546a0	Work on API docs (Adam Charnock)
+ca8c74b727	Fixing naming inconsistancies (Adam Charnock)
+6052117d28	Work on docs (Adam Charnock)
+e3ba322f9a	Adding pip to requirements (Adam Charnock)
+45c2d8d9c4	Work on docs (Adam Charnock)
+9d537e44fd	Fixing tests (Adam Charnock)
+4ca74fdc81	Adding initial docs (Adam Charnock)
+c2d8080228	Adding macro support and finishing up example project (Adam Charnock)
+eeec3f24fa	Fixes to session handling and configuration (Adam Charnock)
+eba740be33	Fixing tests - setting template_extension to .html (Adam Charnock)
+469284756f	udpating gitignore (Adam Charnock)
+1e0f518e64	Adding django fork info (Adam Charnock)
+477baa0802	Adding get_template_package() (Adam Charnock)
+9bc9b7554b	Providing access to classes via pyramid_views.views (Adam Charnock)
+f8cbb8cc0d	Correcting how template packages are determined (Adam Charnock)
+c6ac4bdc74	template file extension now configurable (Adam Charnock)
+a917c55094	template file extension now configurable (Adam Charnock)
+d91adcec96	Work on example project (Adam Charnock)
+
+
 Version 0.1.0 (first version), Wed 26 Mar 2014
 ===============================================
 
