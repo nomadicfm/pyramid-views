@@ -189,6 +189,6 @@ class DetailView(SingleObjectTemplateResponseMixin, BaseDetailView):
     """
     Render a "detail" view of an object.
 
-    By default this is a model instance looked up from `self.query`, but the
-    view will support display of *any* object by overriding `self.get_object()`.
+    By default this is a model instance looked up from ``self.query``, but the
+    view will support display of *any* object by overriding ``self.get_object()``.
     """

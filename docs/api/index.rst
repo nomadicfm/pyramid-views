@@ -1,11 +1,17 @@
 API Reference
 =============
 
-.. automodule:: pyramid_views.views.detail
+.. toctree::
+    :maxdepth: 1
 
+    view
+    redirect-view
+    template-view
+    list-view
+    detail-view
+    form-view
+    create-view
+    update-view
+    delete-view
 
-.. autoclass:: DetailView
-   :members:
-   :undoc-members:
-   :inherited-members:
 

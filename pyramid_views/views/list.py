@@ -199,6 +199,6 @@ class MultipleObjectTemplateResponseMixin(TemplateResponseMixin):
 
 class ListView(MultipleObjectTemplateResponseMixin, BaseListView):
     """
-    Render some list of objects, set by `self.model` or `self.query`.
-    `self.query` can actually be any iterable of items, not just a query.
+    Render some list of objects, set by ``self.model`` or ``self.query``.
+    ``self.query`` can actually be any iterable of items, not just a query.
     """
