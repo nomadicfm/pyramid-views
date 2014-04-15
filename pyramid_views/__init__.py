@@ -5,6 +5,9 @@
 __version__ = "1.0.1"
 
 session = None
-def configure_views(scoped_session):
+def configure_views(session_):
     global session
-    session = scoped_session()
+    if callable(session_):
+        session = session_()
+    else:
+        session = session_
