@@ -30,7 +30,7 @@ class MultipleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
         if self.query is not None:
             query = self.query
         elif self.model is not None:
-            query = self.get_db_session().query(self.model)
+            query = self.db_session.query(self.model)
         else:
             raise ImproperlyConfigured(
                 "%(cls)s is missing a Query. Define "
@@ -42,7 +42,7 @@ class MultipleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
 
         # Set the session on the query if it doesn't have one
         if isinstance(query, Query) and not query.session:
-            query.session = self.get_db_session()
+            query.session = self.db_session
 
         return query
 

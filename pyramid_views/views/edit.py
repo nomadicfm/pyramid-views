@@ -155,7 +155,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             model = self.get_form_class().Meta.model
             self.object = model()
         form.populate_obj(self.object)
-        session = self.get_db_session()
+        session = self.db_session
         session.add(self.object)
         # Do a flush to ensure we get the primary key back
         session.flush()
@@ -263,7 +263,7 @@ class DeletionMixin(object):
         """
         self.object = self.get_object()
         success_url = self.get_success_url()
-        session = self.get_db_session()
+        session = self.db_session
         session.delete(self.object)
         return httpexceptions.HTTPFound(success_url)
 

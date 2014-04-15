@@ -24,7 +24,6 @@ Detail View
         .. automethod:: get_context_object_name
 
         .. autoattribute:: db_session
-        .. automethod:: get_db_session
 
         .. autoattribute:: macro_names
         .. automethod:: get_macro_names

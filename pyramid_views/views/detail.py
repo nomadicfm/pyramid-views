@@ -67,7 +67,7 @@ class SingleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
         """
         if self.query is None:
             if self.model:
-                return self.get_db_session().query(self.model)
+                return self.db_session.query(self.model)
             else:
                 raise ImproperlyConfigured(
                     "%(cls)s is missing a Query. Define "
@@ -79,7 +79,7 @@ class SingleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
 
         # Set the session on the query if it doesn't have one
         if isinstance(self.query, Query) and not self.query.session:
-            self.query.session = self.get_db_session()
+            self.query.session = self.db_session
 
         return self.query
 

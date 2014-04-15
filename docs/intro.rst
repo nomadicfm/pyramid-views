@@ -46,7 +46,7 @@ However, there are a few differences to note:
 **Additional functionality** includes:
 
 * The ``MacroMixin`` class, for passing macros to `chameleon`_ templates via the ``macro_names`` attribute.
-* The ``DbSessionMixin`` class makes the database session available via ``self.get_db_session()``
+* The ``DbSessionMixin`` class makes the database session available via ``self.db_session``
 
 
 .. _Django's class-based views: https://docs.djangoproject.com/en/1.7/ref/class-based-views/
