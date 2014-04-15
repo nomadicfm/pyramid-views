@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.0.1, Tue 15 Apr 2014
+===============================
+
+1cd3094bc0	Removing get_db_session(). The current session should now always be avilable via self.db_session (Adam Charnock)
+
+
 Version 1.0.0, Fri 28 Mar 2014
 ===============================
 
