@@ -2,7 +2,7 @@
 # It must be possible to import this file with 
 # none of the package's dependencies installed
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 session = None
 def configure_views(session_):
