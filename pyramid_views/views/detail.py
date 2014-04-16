@@ -9,7 +9,7 @@ from pyramid_views.utils import ImproperlyConfigured, _
 from pyramid_views.views.base import TemplateResponseMixin, ContextMixin, View, DbSessionMixin, MacroMixin
 from pyramid_views import utils
 
-class SingleObjectMixin(DbSessionMixin, MacroMixin, ContextMixin):
+class SingleObjectMixin(DbSessionMixin, ContextMixin):
     """
     Provides the ability to retrieve a single object for further manipulation.
     """
@@ -185,7 +185,7 @@ class SingleObjectTemplateResponseMixin(TemplateResponseMixin):
         return names
 
 
-class DetailView(SingleObjectTemplateResponseMixin, BaseDetailView):
+class DetailView(SingleObjectTemplateResponseMixin, MacroMixin, BaseDetailView):
     """
     Render a "detail" view of an object.
 

@@ -162,7 +162,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
         return super(ModelFormMixin, self).form_valid(form)
 
 
-class ProcessFormView(MacroMixin, View):
+class ProcessFormView(View):
     """
     A mixin that renders a form on GET and processes it on POST.
     """
@@ -219,7 +219,7 @@ class BaseCreateView(ModelFormMixin, ProcessFormView):
         return super(BaseCreateView, self).post(request, *args, **kwargs)
 
 
-class CreateView(SingleObjectTemplateResponseMixin, BaseCreateView):
+class CreateView(SingleObjectTemplateResponseMixin, MacroMixin, BaseCreateView):
     """
     View for creating a new object instance,
     with a response rendered by template.
@@ -242,7 +242,7 @@ class BaseUpdateView(ModelFormMixin, ProcessFormView):
         return super(BaseUpdateView, self).post(request, *args, **kwargs)
 
 
-class UpdateView(SingleObjectTemplateResponseMixin, BaseUpdateView):
+class UpdateView(SingleObjectTemplateResponseMixin, MacroMixin, BaseUpdateView):
     """
     View for updating an object,
     with a response rendered by template.
@@ -287,7 +287,7 @@ class BaseDeleteView(DeletionMixin, BaseDetailView):
     """
 
 
-class DeleteView(SingleObjectTemplateResponseMixin, BaseDeleteView):
+class DeleteView(SingleObjectTemplateResponseMixin, MacroMixin, BaseDeleteView):
     """
     View for deleting an object retrieved with `self.get_object()`,
     with a response rendered by template.
