@@ -155,11 +155,18 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
             model = self.get_form_class().Meta.model
             self.object = model()
         form.populate_obj(self.object)
-        session = self.db_session
-        session.add(self.object)
-        # Do a flush to ensure we get the primary key back
-        session.flush()
+        self.save()
         return super(ModelFormMixin, self).form_valid(form)
+
+    def save(self):
+        """
+        Persist the model to the DB. Override this method
+        if you need to alter the model pre or post save.
+        """
+        self.db_session.add(self.object)
+        # Do a flush to ensure we get the primary key back
+        self.db_session.flush()
+        return self.object
 
 
 class ProcessFormView(View):
