@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.0.4, Fri 16 May 2014
+===============================
+
+304c4676d1	Adding a save hook on the ModelFormMixin (Adam Charnock)
+
+
 Version 1.0.3, Wed 16 Apr 2014
 ===============================
 
