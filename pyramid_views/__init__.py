@@ -7,7 +7,4 @@ __version__ = "1.0.4"
 session = None
 def configure_views(session_):
     global session
-    if callable(session_):
-        session = session_()
-    else:
-        session = session_
+    session = session_
