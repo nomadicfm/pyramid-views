@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.0.5, Tue 20 May 2014
+===============================
+
+8f74887407	Fixing error in session setup in configure_views() (Adam Charnock)
+
+
 Version 1.0.4, Fri 16 May 2014
 ===============================
 
