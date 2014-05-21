@@ -60,14 +60,10 @@ class DbSessionMixin(object):
     application's scoped database session
     """
 
-    _db_session = None
-
     @property
     def db_session(self):
-        if self._db_session:
-            return self._db_session
-        elif pyramid_views.session:
-            return pyramid_views.session
+        if pyramid_views.session:
+            return pyramid_views.session()
         else:
             raise ImproperlyConfigured("DB session not available. Either set the view's 'session' "
                                        "attribute, or call pyramid_views.configure_views() with a "
