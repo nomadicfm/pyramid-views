@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.0.6, Wed 21 May 2014
+===============================
+
+4cd5b19580	Simplifying and fixing db session handling (Adam Charnock)
+
+
 Version 1.0.5, Tue 20 May 2014
 ===============================
 
