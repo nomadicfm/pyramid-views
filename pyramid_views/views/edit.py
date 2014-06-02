@@ -152,7 +152,7 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
         If the form is valid, save the associated model.
         """
         if self.object is None:
-            model = self.get_form_class().Meta.model
+            model = self.model or self.get_form_class().Meta.model
             self.object = model()
         form.populate_obj(self.object)
         self.save()
