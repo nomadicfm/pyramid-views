@@ -4,6 +4,13 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.0.8, Mon 02 Jun 2014
+===============================
+
+7f04ff3e8c	Giving self.model preference over the form's model class in ModelFormMixin (Adam Charnock)
+9abaeaf9f4	TemplateView now has self.db_session available (Adam Charnock)
+
+
 Version 1.0.7, Wed 21 May 2014
 ===============================
 
