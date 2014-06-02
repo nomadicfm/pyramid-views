@@ -201,7 +201,7 @@ class TemplateResponseMixin(object):
             return self._template_names
 
 
-class TemplateView(TemplateResponseMixin, ContextMixin, MacroMixin, View):
+class TemplateView(DbSessionMixin, TemplateResponseMixin, ContextMixin, MacroMixin, View):
     """
     A view that renders a template.  This view will also pass into the context
     any keyword arguments passed by the url conf.
