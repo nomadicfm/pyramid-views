@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.1.0, Mon 09 Jun 2014
+===============================
+
+20a7d33957	Adding support for 'endpoint' parameter on form-based views (Adam Charnock)
+
+
 Version 1.0.8, Mon 02 Jun 2014
 ===============================
 
