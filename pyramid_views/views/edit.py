@@ -1,4 +1,6 @@
+import json
 from pyramid import httpexceptions
+from pyramid.response import Response
 
 from wtforms_alchemy import ModelForm, model_form_factory
 
@@ -17,6 +19,13 @@ class FormMixin(ContextMixin):
     form_class = None
     success_url = None
     prefix = None
+    endpoint = False
+
+    def get(self, request, *args, **kwargs):
+        if self.endpoint and not self.template_name:
+            return httpexceptions.HTTPNotImplemented()
+        else:
+            return super(FormMixin, self).get(request, *args, **kwargs)
 
     def get_initial(self):
         """
@@ -77,14 +86,28 @@ class FormMixin(ContextMixin):
         """
         If the form is valid, redirect to the supplied URL.
         """
-        return httpexceptions.HTTPFound(self.get_success_url())
+        try:
+            return httpexceptions.HTTPFound(self.get_success_url())
+        except ImproperlyConfigured:
+            if self.endpoint:
+                # This is an endpoint, so we can just return an
+                # empty response with status 200
+                return Response('')
+            else:
+                raise
 
     def form_invalid(self, form):
         """
         If the form is invalid, re-render the context data with the
         data-filled form and errors.
         """
-        return self.render_to_response(self.get_context_data(form=form))
+        if not self.endpoint:
+            return self.render_to_response(self.get_context_data(form=form))
+        else:
+            # This is an endpoint, so return the errors as JSON
+            response = httpexceptions.HTTPBadRequest()
+            response.body = json.dumps({'errors': form.errors})
+            return response
 
 
 class ModelFormMixin(FormMixin, SingleObjectMixin):

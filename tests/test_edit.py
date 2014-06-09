@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import unittest
 from chameleon.zpt.template import Macro
 from pyramid.testing import DummyRequest
+import json
 from webob.multidict import MultiDict
 from wtforms_alchemy import ModelForm
 
@@ -198,6 +199,46 @@ class CreateViewTests(BaseTest):
         with self.assertRaisesMessage(ImproperlyConfigured, message):
             MyCreateView().get_form_class()
 
+    def test_create_endpoint(self):
+        view = views.AuthorCreate.as_view(endpoint=True, success_url=None)
+        res = view(DummyRequest())
+        self.assertEqual(res.status_code, 501)
+        self.assertEqual(res.body, '')
+
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.body, '')
+        self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe>'])
+
+    def test_create_endpoint_with_url(self):
+        view = views.AuthorCreate.as_view(endpoint=True)
+        res = view(DummyRequest())
+        self.assertEqual(res.status_code, 501)
+        self.assertEqual(res.body, '')
+
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe', 'slug': 'randall-munroe'})
+        ))
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.body, '')
+        self.assertRedirects(res, '/list/authors/')
+        self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe>'])
+
+    def test_create_endpoint_invalid(self):
+        view = views.AuthorCreate.as_view(endpoint=True)
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'A' * 101, 'slug': 'randall-munroe'})
+        ))
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(Session.query(Author).count(), 0)
+        decoded = json.loads(res.body)
+        self.assertIn('errors', decoded)
+
 
 class UpdateViewTests(BaseTest):
     urls = 'generic_views.urls'
@@ -367,6 +408,59 @@ class UpdateViewTests(BaseTest):
         self.assertRedirects(res, '/list/authors/')
         self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe (xkcd)>'])
 
+    def test_update_endpoint(self):
+        a = self.author(
+            name='Randall Munroe',
+            slug='randall-munroe',
+        )
+        view = views.AuthorUpdate.as_view(endpoint=True, success_url=None)
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (xkcd)', 'slug': 'randall-munroe'}),
+        ), pk=a.id)
+        self.assertEqual(res.status_code, 200)
+        self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe (xkcd)>'])
+
+    def test_update_endpoint_with_url(self):
+        a = self.artist(name='Rene Magritte')
+        view = views.ArtistUpdate.as_view(endpoint=True)
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Rene Magritte'}),
+        ), pk=a.id)
+        self.assertEqual(res.status_code, 302)
+        self.assertRedirects(res, '/detail/artist/%d/' % a.id)
+        self.assertQuerysetEqual(Session.query(Artist).all(), ['<Artist: Rene Magritte>'])
+
+    def test_update_invalid_endpoint(self):
+        a = self.author(
+            name='Randall Munroe',
+            slug='randall-munroe',
+        )
+        view = views.AuthorUpdate.as_view(endpoint=True, success_url=None)
+        res = view(DummyRequest(
+            method='PUT',
+            params=MultiDict({'name': 'a' * 101, 'slug': 'randall-munroe'}),
+        ), pk=a.id)
+        self.assertEqual(res.status_code, 400)
+        decoded = json.loads(res.body)
+        self.assertIn('errors', decoded)
+        self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe>'])
+
+    def test_update_invalid_endpoint_with_url(self):
+        a = self.author(
+            name='Randall Munroe',
+            slug='randall-munroe',
+        )
+        view = views.AuthorUpdate.as_view(endpoint=True)
+        res = view(DummyRequest(
+            method='PUT',
+            params=MultiDict({'name': 'a' * 101, 'slug': 'randall-munroe'}),
+        ), pk=a.id)
+        self.assertEqual(res.status_code, 400)
+        decoded = json.loads(res.body)
+        self.assertIn('errors', decoded)
+        self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe>'])
 
 class DeleteViewTests(BaseTest):
 
