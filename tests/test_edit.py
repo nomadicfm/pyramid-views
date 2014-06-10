@@ -462,6 +462,34 @@ class UpdateViewTests(BaseTest):
         self.assertIn('errors', decoded)
         self.assertQuerysetEqual(Session.query(Author).all(), ['<Author: Randall Munroe>'])
 
+    def test_partial_update(self):
+        a = self.author(
+            name='Randall Munroe',
+            slug='randall-munroe',
+        )
+        view = views.AuthorUpdate.as_view(partial_updates=True)
+        res = view(DummyRequest(), pk=a.id)
+        self.assertEqual(res.status_code, 200)
+        self.assertIsInstance(res.context['form'], ModelForm)
+        self.assertEqual(res.context['form']._fields['name'].object_data, 'Randall Munroe')
+        self.assertEqual(res.context['form']._fields['slug'].object_data, 'randall-munroe')
+        self.assertEqual(res.context['object'], Session.query(Author).filter(Author.id==a.id).one())
+        self.assertEqual(res.context['author'], Session.query(Author).filter(Author.id==a.id).one())
+        self.assertTemplateUsed(res, 'tests:templates/author_form.html')
+        self.assertIsInstance(res.context['macros']['my_macros']['testmacro'], Macro)
+
+        # Modification with both POST and PUT (browser compatible)
+        res = view(DummyRequest(
+            method='POST',
+            params=MultiDict({'name': 'Randall Munroe (xkcd)'}),
+        ), pk=a.id)
+        self.assertEqual(res.status_code, 302)
+        self.assertRedirects(res, '/list/authors/')
+        author = Session.query(Author).one()
+        self.assertQuerysetEqual(author.name, 'Randall Munroe (xkcd)')
+        self.assertQuerysetEqual(author.slug, 'randall-munroe')
+
+
 class DeleteViewTests(BaseTest):
 
     def test_delete_by_post(self):

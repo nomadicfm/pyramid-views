@@ -177,9 +177,14 @@ class ModelFormMixin(FormMixin, SingleObjectMixin):
         if self.object is None:
             model = self.model or self.get_form_class().Meta.model
             self.object = model()
-        form.populate_obj(self.object)
+        self.populate_obj(form)
         self.save()
         return super(ModelFormMixin, self).form_valid(form)
+
+    def populate_obj(self, form):
+        """ Populate ``self.object`` with the values from ``form``
+        """
+        form.populate_obj(self.object)
 
     def save(self):
         """
@@ -263,6 +268,8 @@ class BaseUpdateView(ModelFormMixin, ProcessFormView):
 
     Using this base class requires subclassing to provide a response mixin.
     """
+    partial_updates = False
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super(BaseUpdateView, self).get(request, *args, **kwargs)
@@ -270,6 +277,21 @@ class BaseUpdateView(ModelFormMixin, ProcessFormView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super(BaseUpdateView, self).post(request, *args, **kwargs)
+
+    def populate_obj(self, form):
+        """ Populate ``self.object`` with the values from ``form``
+
+        Supports doing partial updates if enabled via the
+        ``partial_updates`` flag
+        """
+        if not self.partial_updates:
+            form.populate_obj(self.object)
+        else:
+            for name, field in form._fields.items():
+                if name in self.request.POST:
+                    # Only populate fields present in the post request
+                    # as this is a partial update
+                    field.populate_obj(self.object, name)
 
 
 class UpdateView(SingleObjectTemplateResponseMixin, MacroMixin, BaseUpdateView):
