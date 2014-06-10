@@ -47,6 +47,10 @@ However, there are a few differences to note:
 
 * The ``MacroMixin`` class, for passing macros to `chameleon`_ templates via the ``macro_names`` attribute.
 * The ``DbSessionMixin`` class makes the database session available via ``self.db_session``
+* The ``UpdateView`` class supports the ``partial_updates`` option. When ``True``, this will only update fields
+  present in the request
+* Form-based can take the ``endpoint`` parameter. When ``True``, the view will behave like an API endpoint
+  rather than a user-facing page (errors encoded as JSON, 200 response codes when ``success_uri`` not present).
 
 
 .. _Django's class-based views: https://docs.djangoproject.com/en/1.7/ref/class-based-views/
