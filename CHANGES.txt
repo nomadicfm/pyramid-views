@@ -4,6 +4,13 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.0, Tue 10 Jun 2014
+===============================
+
+eeb5a17fef	Updating 'Differences from Django' section of docs (Adam Charnock)
+4c74b00859	Adding partial_updates feature to UpdateView (Adam Charnock)
+
+
 Version 1.1.0, Mon 09 Jun 2014
 ===============================
 
