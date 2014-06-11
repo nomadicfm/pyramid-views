@@ -314,10 +314,18 @@ class DeletionMixin(object):
         redirects to the success URL.
         """
         self.object = self.get_object()
-        success_url = self.get_success_url()
         session = self.db_session
         session.delete(self.object)
-        return httpexceptions.HTTPFound(success_url)
+        try:
+            success_url = self.get_success_url()
+            return httpexceptions.HTTPFound(success_url)
+        except ImproperlyConfigured:
+            if getattr(self, 'endpoint', None):
+                # This is an endpoint, so we can just return an
+                # empty response with status 200
+                return Response('')
+            else:
+                raise
 
     # Add support for browsers which only accept GET and POST for now.
     def post(self, request, *args, **kwargs):
