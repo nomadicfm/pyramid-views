@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.2, Wed 11 Jun 2014
+===============================
+
+0c60f4936d	DeleteView now supports the endpoint option (Adam Charnock)
+
+
 Version 1.2.1, Wed 11 Jun 2014
 ===============================
 
