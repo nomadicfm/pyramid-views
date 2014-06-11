@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.1, Wed 11 Jun 2014
+===============================
+
+6eeb9516eb	Removing use of unicode_literals in pyramid-views as it causes problems with waitress (Adam Charnock)
+
+
 Version 1.2.0, Tue 10 Jun 2014
 ===============================
 
