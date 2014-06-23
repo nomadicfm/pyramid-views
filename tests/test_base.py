@@ -239,7 +239,7 @@ class ViewTest(BaseTest):
             DummyRequest(path='/', method='GET')
         )
         for attribute in ('args', 'kwargs', 'request'):
-            self.assertNotIn(attribute, dir(bare_view))
+            self.assertEqual(getattr(bare_view, attribute), None)
             self.assertIn(attribute, dir(view))
 
     def test_direct_instantiation(self):

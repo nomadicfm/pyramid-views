@@ -72,9 +72,16 @@ class View(object):
     """
     Intentionally simple parent class for all views. Only implements
     dispatch-by-method and simple sanity checking.
+
+    @type request: pyramid.request.Request
+    @type args: list
+    @type kwargs: dict
     """
 
     http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
+    request = None
+    args = None
+    kwargs = None
 
     def __init__(self, **kwargs):
         """
