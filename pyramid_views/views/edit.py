@@ -61,7 +61,7 @@ class FormMixin(ContextMixin):
             'obj': getattr(self, 'object', None),
         }
 
-        if self.request.method in ('POST', 'PUT'):
+        if self.request.method.upper() in ('POST', 'PUT'):
             # Note that, unlike Django, Pyramid does not
             # distinguish file data from post data (Django
             # has both POST and FILES, Pyramid has just POST)
@@ -314,8 +314,7 @@ class DeletionMixin(object):
         redirects to the success URL.
         """
         self.object = self.get_object()
-        session = self.db_session
-        session.delete(self.object)
+        self.do_delete()
         try:
             success_url = self.get_success_url()
             return httpexceptions.HTTPFound(success_url)
@@ -337,6 +336,9 @@ class DeletionMixin(object):
         else:
             raise ImproperlyConfigured(
                 "No URL to redirect to. Provide a success_url.")
+
+    def do_delete(self):
+        self.db_session.delete(self.object)
 
 
 class BaseDeleteView(DeletionMixin, BaseDetailView):
