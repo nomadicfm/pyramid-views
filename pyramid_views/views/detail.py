@@ -106,7 +106,7 @@ class SingleObjectMixin(DbSessionMixin, ContextMixin):
         Insert the single object into the context dict.
         """
         context = {}
-        if self.object:
+        if hasattr(self, 'object'):
             context['object'] = self.object
             context_object_name = self.get_context_object_name(self.object)
             if context_object_name:
