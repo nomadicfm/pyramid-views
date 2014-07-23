@@ -4,6 +4,14 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.3, Wed 23 Jul 2014
+===============================
+
+5f45660a60	Fixing bug in request method checking. Moving deletion to do_delete() method. (Adam Charnock)
+23680c63ee	Fixing bug in checking for object presence (Adam Charnock)
+9269be884a	Allowing introspection of request, args, and kwargs instance variables (Adam Charnock)
+
+
 Version 1.2.2, Wed 11 Jun 2014
 ===============================
 
