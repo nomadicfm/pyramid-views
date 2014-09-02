@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.4, Tue 02 Sep 2014
+===============================
+
+255905a492	Excluding empty file upload fields from partial updates (Adam Charnock)
+
+
 Version 1.2.3, Wed 23 Jul 2014
 ===============================
 
