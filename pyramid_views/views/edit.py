@@ -1,6 +1,7 @@
 import json
 from pyramid import httpexceptions
 from pyramid.response import Response
+from wtforms import FileField
 
 from wtforms_alchemy import ModelForm, model_form_factory
 
@@ -288,9 +289,14 @@ class BaseUpdateView(ModelFormMixin, ProcessFormView):
             form.populate_obj(self.object)
         else:
             for name, field in form._fields.items():
-                if name in self.request.POST:
-                    # Only populate fields present in the post request
-                    # as this is a partial update
+                # Only populate fields present in the post request
+                # as this is a partial update.
+                # Note we also exclude empty file upload fields, as it is
+                # commonly desirable to leave a file field unchanged, rather than
+                # blanking it out (and pre-populating a file field is not an option).
+                in_post_data = name in self.request.POST
+                empty_file_upload = isinstance(field, FileField) and field.data == ''
+                if in_post_data and not empty_file_upload:
                     field.populate_obj(self.object, name)
 
 
