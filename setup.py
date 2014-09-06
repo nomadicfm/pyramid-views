@@ -20,7 +20,7 @@ setup(
     # Put your license here. See LICENSE.txt for more information
     license='MIT',
     # Put a nice one-liner description here
-    description='',
+    description='Pyramid port of Django\'s class-based generic views',
     long_description=open('README.rst').read() if exists("README.rst") else "",
     # Any requirements here, e.g. "Django >= 1.1.1"
     install_requires=[
