@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.7, Sat 06 Sep 2014
+===============================
+
+4c4ef4f44b	Adding call to post-populate hook on forms following population (as form.populate_obj isn't called for partial updates) (Adam Charnock)
+
+
 Version 1.2.6, Sat 06 Sep 2014
 ===============================
 
