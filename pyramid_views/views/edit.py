@@ -296,7 +296,8 @@ class BaseUpdateView(ModelFormMixin, ProcessFormView):
                 # blanking it out (and pre-populating a file field is not an option).
                 in_post_data = name in self.request.POST
                 empty_file_upload = isinstance(field, FileField) and field.data == ''
-                if in_post_data and not empty_file_upload:
+                always_update = name in getattr(self, 'always_update')
+                if always_update or (in_post_data and not empty_file_upload):
                     field.populate_obj(self.object, name)
 
 
