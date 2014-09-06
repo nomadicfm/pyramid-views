@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.5, Sat 06 Sep 2014
+===============================
+
+7074b89d41	Adding always_update mechanism for partial updates (Adam Charnock)
+
+
 Version 1.2.4, Tue 02 Sep 2014
 ===============================
 
