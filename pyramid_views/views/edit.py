@@ -300,6 +300,10 @@ class BaseUpdateView(ModelFormMixin, ProcessFormView):
                 if always_update or (in_post_data and not empty_file_upload):
                     field.populate_obj(self.object, name)
 
+        post_populate = getattr(form, 'post_populate', None)
+        if post_populate:
+            form.post_populate(self.object)
+
 
 class UpdateView(SingleObjectTemplateResponseMixin, MacroMixin, BaseUpdateView):
     """
