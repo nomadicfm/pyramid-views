@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.6, Sat 06 Sep 2014
+===============================
+
+5d0ed677f1	Fixing bug in previous change (Adam Charnock)
+
+
 Version 1.2.5, Sat 06 Sep 2014
 ===============================
 
