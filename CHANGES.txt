@@ -4,6 +4,12 @@ This file will be added to as part of each release
 
 ----
 
+Version 1.2.8, Sat 06 Sep 2014
+===============================
+
+2c77bf1756	Update setup.py (Low Kian Seong)
+
+
 Version 1.2.7, Sat 06 Sep 2014
 ===============================
 
