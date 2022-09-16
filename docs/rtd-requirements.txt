@@ -1,7 +1,7 @@
 pip==1.5.4
 Chameleon==2.15
 Jinja2==2.7.2
-Mako==0.9.1
+Mako==1.2.2
 MarkupSafe==0.19
 PasteDeploy==1.5.2
 SQLAlchemy==0.9.3
